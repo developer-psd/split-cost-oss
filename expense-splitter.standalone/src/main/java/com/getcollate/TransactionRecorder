@@ -1,0 +1,3 @@
+public interface TransactionRecorder {
+    public List<Transaction> record(Transaction transaction, Context context);
+}
