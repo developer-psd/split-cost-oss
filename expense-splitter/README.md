@@ -25,7 +25,7 @@
 {
     "addParticipants": ["Bob",...],
     "removeParticipants":["Alice",...]
-}  
+}
 ```
 - POST /trip/{trip_id}/transactions
   - You can't edit a transaction, rather you can delete it and add new ones again.

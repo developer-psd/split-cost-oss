@@ -1,5 +1,0 @@
-package com.getcollate.calculator;
-
-public interface ExpenseSplitter {
-    public void split();
-}
