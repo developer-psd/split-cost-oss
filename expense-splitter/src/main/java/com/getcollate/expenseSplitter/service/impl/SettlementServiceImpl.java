@@ -6,6 +6,7 @@ import com.getcollate.trip.Trip;
 import com.getcollate.trip.accounts.settler.Debt;
 import com.getcollate.trip.accounts.settler.SettlementMode;
 import com.getcollate.trip.accounts.settler.factory.SettlerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public class SettlementServiceImpl implements SettlementService {
 
     SettlementRepository settlementRepository;
 
-    public SettlementServiceImpl(SettlementRepository settlementRepository) {
+    public SettlementServiceImpl(@Qualifier("postgresSettlementRepository") SettlementRepository settlementRepository) {
         this.settlementRepository = settlementRepository;
     }
 

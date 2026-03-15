@@ -18,53 +18,44 @@ public class TripTransactionController {
 
     private static final Logger logger = LoggerFactory.getLogger(TripTransactionController.class);
 
-    @GetMapping
-    public Map<String, Object> queryTransactions(@PathVariable String tripId) {
-        return null;
-    }
-
-    TripTransactionService service;
+    private final TripTransactionService service;
 
     public TripTransactionController(TripTransactionService service) {
         this.service = service;
     }
 
-    @GetMapping("/")
-    public ResponseEntity<List<Map<String, Object>>> getAllTransactions(@PathVariable String tripId, String transactionId) {
-        logger.info("TripId: " + tripId + " TransactionId: " + transactionId);
+    @GetMapping
+    public ResponseEntity<List<Map<String, Object>>> getAllTransactions(@PathVariable String tripId) {
+        logger.info("TripId: {}", tripId);
+
         List<Transaction> transactions = service.getTransactions(tripId);
-        return ResponseEntity.ok().body(transactions.stream()
-                .map(transaction -> Map.of(
-                        "transactionId", transaction.transactionId(),
-                        "benefittedBy", transaction.benefittedBy(),
-                        "amount", transaction.spentAmount(),
-                        "shareType", transaction.shareType(),
-                        "spentBy", transaction.spentBy(),
-                        "spentDate", transaction.spentDate().toString(),
-                        "spentOn", transaction.spentOn()
-                )).toList());
+
+        return ResponseEntity.ok(
+                transactions.stream()
+                        .map(transaction -> Map.of(
+                                "transactionId", transaction.transactionId(),
+                                "benefittedBy", transaction.benefittedBy(),
+                                "amount", transaction.spentAmount(),
+                                "shareType", transaction.shareType(),
+                                "spentBy", transaction.spentBy(),
+                                "spentDate", transaction.spentDate().toString(),
+                                "spentOn", transaction.spentOn()
+                        ))
+                        .toList()
+        );
     }
 
     @GetMapping("/{transactionId}")
-    public ResponseEntity<Map<String, Object>> queryTransactions(@PathVariable String tripId, String transactionId) {
-        logger.info("TripId: " + tripId + " TransactionId: " + transactionId);
+    public ResponseEntity<Map<String, Object>> getTransaction(
+            @PathVariable String tripId,
+            @PathVariable String transactionId
+    ) {
+        logger.info("TripId: {} TransactionId: {}", tripId, transactionId);
+
         Transaction transaction = service.getTransaction(tripId, transactionId);
-        return ResponseEntity.ok().body(Map.of("transactionId", transaction.transactionId(), "benefittedBy", transaction.benefittedBy(), "amount", transaction.spentAmount(), "shareType", transaction.shareType(), "spentBy", transaction.spentBy(), "spentDate", transaction.spentDate().toString(), "spentOn", transaction.spentOn()));
-    }
 
-    @DeleteMapping("/{transactionId}")
-    public ResponseEntity<Map<String, Object>> deleteTransaction(@PathVariable String tripId, @PathVariable String transactionId) {
-        logger.info("TripId: " + tripId + " TransactionId: " + transactionId);
-        service.deleteTransaction(tripId, transactionId);
-        return ResponseEntity.ok().body(Map.of("transactionId", transactionId));
-    }
-
-    @PostMapping
-    public ResponseEntity<List<Map<String, Object>>> postTransaction(@PathVariable String tripId, @Valid @RequestBody PostTransactionRequest transactionRequest) {
-        logger.info("TripId: " + tripId + " Request: " + transactionRequest);
-        List<Transaction> transactions = service.createTransaction(tripId, transactionRequest);
-        return ResponseEntity.ok().body(transactions.stream()
-                .map(transaction -> Map.of(
+        return ResponseEntity.ok(
+                Map.of(
                         "transactionId", transaction.transactionId(),
                         "benefittedBy", transaction.benefittedBy(),
                         "amount", transaction.spentAmount(),
@@ -72,6 +63,41 @@ public class TripTransactionController {
                         "spentBy", transaction.spentBy(),
                         "spentDate", transaction.spentDate().toString(),
                         "spentOn", transaction.spentOn()
-                )).toList());
+                )
+        );
+    }
+
+    @DeleteMapping("/{transactionId}")
+    public ResponseEntity<Map<String, Object>> deleteTransaction(
+            @PathVariable String tripId,
+            @PathVariable String transactionId
+    ) {
+        logger.info("TripId: {} TransactionId: {}", tripId, transactionId);
+        service.deleteTransaction(tripId, transactionId);
+        return ResponseEntity.ok(Map.of("transactionId", transactionId));
+    }
+
+    @PostMapping
+    public ResponseEntity<List<Map<String, Object>>> postTransaction(
+            @PathVariable String tripId,
+            @Valid @RequestBody PostTransactionRequest transactionRequest
+    ) {
+        logger.info("TripId: {} Request: {}", tripId, transactionRequest);
+
+        List<Transaction> transactions = service.createTransaction(tripId, transactionRequest);
+
+        return ResponseEntity.ok(
+                transactions.stream()
+                        .map(transaction -> Map.of(
+                                "transactionId", transaction.transactionId(),
+                                "benefittedBy", transaction.benefittedBy(),
+                                "amount", transaction.spentAmount(),
+                                "shareType", transaction.shareType(),
+                                "spentBy", transaction.spentBy(),
+                                "spentDate", transaction.spentDate().toString(),
+                                "spentOn", transaction.spentOn()
+                        ))
+                        .toList()
+        );
     }
 }

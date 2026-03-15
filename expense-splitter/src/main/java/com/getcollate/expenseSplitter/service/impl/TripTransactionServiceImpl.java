@@ -9,6 +9,7 @@ import com.getcollate.trip.Trip;
 import com.getcollate.trip.accounts.CATEGORY;
 import com.getcollate.trip.accounts.SHARETYPE;
 import com.getcollate.trip.accounts.Transaction;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -20,7 +21,7 @@ public class TripTransactionServiceImpl implements TripTransactionService {
 
     TripTransactionReporitory tripTransactionReporitory;
 
-    public TripTransactionServiceImpl(TripTransactionReporitory tripTransactionReporitory) {
+    public TripTransactionServiceImpl(@Qualifier("postgresTripTransactionRepository") TripTransactionReporitory tripTransactionReporitory) {
         this.tripTransactionReporitory = tripTransactionReporitory;
     }
 

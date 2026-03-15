@@ -5,6 +5,7 @@ import com.getcollate.expenseSplitter.repository.TripRepository;
 import com.getcollate.expenseSplitter.service.TripService;
 import com.getcollate.trip.Participant;
 import com.getcollate.trip.Trip;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,7 +15,8 @@ public class TripServiceImpl implements TripService {
 
     TripRepository tripRepository;
 
-    public TripServiceImpl(TripRepository tripRepository) {
+    public TripServiceImpl(@Qualifier("postgresTripRepository")  TripRepository tripRepository) {
+
         this.tripRepository = tripRepository;
     }
 

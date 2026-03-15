@@ -30,121 +30,135 @@ public class SimplifiedSettler implements Settler {
             return List.of();
         }
 
-        BestSolution bestSolution = new BestSolution();
-        dfs(0, participantIds, balances, new ArrayList<>(), bestSolution);
+        int n = balances.size();
+        if (n > 20) {
+            throw new IllegalStateException("Exact simplified settlement supports up to 20 non-zero participants.");
+        }
 
-        return bestSolution.debts;
+        int totalMasks = 1 << n;
+        int[] subsetSum = new int[totalMasks];
+
+        for (int mask = 1; mask < totalMasks; mask++) {
+            int lsb = mask & -mask;
+            int bitIndex = Integer.numberOfTrailingZeros(lsb);
+            subsetSum[mask] = subsetSum[mask ^ lsb] + balances.get(bitIndex);
+        }
+
+        int[] memo = new int[totalMasks];
+        int[] choice = new int[totalMasks];
+        Arrays.fill(memo, Integer.MIN_VALUE);
+        memo[0] = 0;
+
+        maxZeroSumGroups(totalMasks - 1, subsetSum, memo, choice);
+
+        List<Debt> result = new ArrayList<>();
+        int remainingMask = totalMasks - 1;
+
+        while (remainingMask != 0) {
+            int groupMask = choice[remainingMask];
+            result.addAll(settleZeroSumGroup(groupMask, participantIds, balances));
+            remainingMask ^= groupMask;
+        }
+
+        return result;
     }
 
-    // bfs was the initial easiest solution for the shortest path... but when the number of participants grew, we'll have memory explosion.
-    // second option was dfs which was optimal for memory... but without pruning was not really helpful (took a lot of time).
-    // added dfs + pruning - which was better wrt to run time, but further optimization could be done by ordering the search,
-    //
-    // have introduced dfs with pruning
-    private void dfs(
-            int start,
-            List<String> participantIds,
-            List<Integer> balances,
-            List<Debt> currentDebts,
-            BestSolution bestSolution
+    /**
+     * Exact DP:
+     * Maximize number of disjoint zero-sum groups in "mask".
+     * Minimum transactions = n - (#zero-sum groups).
+     */
+    private int maxZeroSumGroups(
+            int mask,
+            int[] subsetSum,
+            int[] memo,
+            int[] choice
     ) {
-        while (start < balances.size() && balances.get(start) == 0) {
-            start++;
+        if (memo[mask] != Integer.MIN_VALUE) {
+            return memo[mask];
         }
 
-        if (start == balances.size()) {
-            if (currentDebts.size() < bestSolution.minTransactions) {
-                bestSolution.minTransactions = currentDebts.size();
-                bestSolution.debts = new ArrayList<>(currentDebts);
-            }
-            return;
-        }
+        int firstBit = mask & -mask;
 
-        if (currentDebts.size() >= bestSolution.minTransactions) {
-            return;
-        }
+        int best = Integer.MIN_VALUE;
+        int bestSubmask = 0;
 
-        int startBalance = balances.get(start);
-
-        List<Integer> candidateIndices = new ArrayList<>();
-        Set<Integer> triedBalances = new HashSet<>();
-
-        for (int i = start + 1; i < balances.size(); i++) {
-            int candidateBalance = balances.get(i);
-
-            if (candidateBalance == 0 || startBalance * candidateBalance >= 0) {
-                continue; // must be opposite signs
+        for (int submask = mask; submask > 0; submask = (submask - 1) & mask) {
+            if ((submask & firstBit) == 0) {
+                continue;
             }
 
-            if (!triedBalances.add(candidateBalance)) {
-                continue; // skip duplicate balance states
+            if (subsetSum[submask] != 0) {
+                continue;
             }
 
-            candidateIndices.add(i);
-        }
+            int candidate = 1 + maxZeroSumGroups(mask ^ submask, subsetSum, memo, choice);
 
-        candidateIndices.sort((i, j) -> {
-            int balanceI = balances.get(i);
-            int balanceJ = balances.get(j);
-
-            boolean exactI = Math.abs(startBalance) == Math.abs(balanceI);
-            boolean exactJ = Math.abs(startBalance) == Math.abs(balanceJ);
-
-            if (exactI != exactJ) {
-                return exactI ? -1 : 1; // exact cancellation first
-            }
-
-            return Integer.compare(Math.abs(balanceJ), Math.abs(balanceI));
-        });
-
-        for (int i : candidateIndices) {
-            int candidateBalance = balances.get(i);
-            int transferInCents = Math.min(Math.abs(startBalance), Math.abs(candidateBalance));
-
-            Debt settlementDebt;
-            int newStartBalance;
-            int newCandidateBalance;
-
-            if (startBalance < 0) {
-                // start is debtor, candidate is creditor
-                settlementDebt = createDebt(
-                        participantIds.get(start),
-                        participantIds.get(i),
-                        transferInCents
-                );
-                newStartBalance = startBalance + transferInCents;
-                newCandidateBalance = candidateBalance - transferInCents;
-            } else {
-                // start is creditor, candidate is debtor
-                settlementDebt = createDebt(
-                        participantIds.get(i),
-                        participantIds.get(start),
-                        transferInCents
-                );
-                newStartBalance = startBalance - transferInCents;
-                newCandidateBalance = candidateBalance + transferInCents;
-            }
-
-            balances.set(start, newStartBalance);
-            balances.set(i, newCandidateBalance);
-            currentDebts.add(settlementDebt);
-
-            dfs(
-                    newStartBalance == 0 ? start + 1 : start,
-                    participantIds,
-                    balances,
-                    currentDebts,
-                    bestSolution
-            );
-
-            currentDebts.remove(currentDebts.size() - 1);
-            balances.set(start, startBalance);
-            balances.set(i, candidateBalance);
-
-            if (Math.abs(startBalance) == Math.abs(candidateBalance)) {
-                break; // strongest pruning: both sides close out exactly
+            if (candidate > best) {
+                best = candidate;
+                bestSubmask = submask;
+            } else if (candidate == best) {
+                // tie-break: prefer smaller groups for cleaner reconstruction
+                if (bestSubmask == 0 || Integer.bitCount(submask) < Integer.bitCount(bestSubmask)) {
+                    bestSubmask = submask;
+                }
             }
         }
+
+        memo[mask] = best;
+        choice[mask] = bestSubmask;
+        return best;
+    }
+
+    /**
+     * Settle one zero-sum group with actual transfers.
+     * For a zero-sum group of size m, this will use at most m-1 transfers.
+     * Since the DP maximizes number of disjoint zero-sum groups, the overall
+     * result is globally optimal in number of transfers.
+     */
+    private List<Debt> settleZeroSumGroup(
+            int groupMask,
+            List<String> participantIds,
+            List<Integer> balances
+    ) {
+        Deque<BalanceNode> debtors = new ArrayDeque<>();
+        Deque<BalanceNode> creditors = new ArrayDeque<>();
+
+        for (int i = 0; i < balances.size(); i++) {
+            if ((groupMask & (1 << i)) == 0) {
+                continue;
+            }
+
+            int balance = balances.get(i);
+            if (balance < 0) {
+                debtors.addLast(new BalanceNode(participantIds.get(i), -balance));
+            } else if (balance > 0) {
+                creditors.addLast(new BalanceNode(participantIds.get(i), balance));
+            }
+        }
+
+        List<Debt> debts = new ArrayList<>();
+
+        while (!debtors.isEmpty() && !creditors.isEmpty()) {
+            BalanceNode debtor = debtors.peekFirst();
+            BalanceNode creditor = creditors.peekFirst();
+
+            int transferInCents = Math.min(debtor.amountInCents, creditor.amountInCents);
+
+            debts.add(createDebt(debtor.participantId, creditor.participantId, transferInCents));
+
+            debtor.amountInCents -= transferInCents;
+            creditor.amountInCents -= transferInCents;
+
+            if (debtor.amountInCents == 0) {
+                debtors.removeFirst();
+            }
+            if (creditor.amountInCents == 0) {
+                creditors.removeFirst();
+            }
+        }
+
+        return debts;
     }
 
     private Debt createDebt(String fromParticipant, String toParticipant, int amountInCents) {
@@ -242,8 +256,13 @@ public class SimplifiedSettler implements Settler {
         return participant.participantId();
     }
 
-    private static class BestSolution {
-        private int minTransactions = Integer.MAX_VALUE;
-        private List<Debt> debts = List.of();
+    private static class BalanceNode {
+        private final String participantId;
+        private int amountInCents;
+
+        private BalanceNode(String participantId, int amountInCents) {
+            this.participantId = participantId;
+            this.amountInCents = amountInCents;
+        }
     }
 }
