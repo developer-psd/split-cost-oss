@@ -123,7 +123,7 @@ class SimplifiedSettlerFunctionalTest {
 
         assertDebtsExactlyMatch(
                 "Neutral middle participant should disappear after simplification",
-                Map.of(edge("C", "A"), 50_00),
+                Map.of(edge("3", "1"), 50_00),
                 result
         );
     }
@@ -141,7 +141,7 @@ class SimplifiedSettlerFunctionalTest {
 
         assertDebtsExactlyMatch(
                 "Chain should simplify to the final net balances only",
-                Map.of(edge("C", "A"), 45_00, edge("B", "A"), 15_00),
+                Map.of(edge("3", "1"), 45_00, edge("2", "1"), 15_00),
                 result
         );
         assertDebtsSettleBalances(List.of(t1, t2), result);
@@ -171,7 +171,7 @@ class SimplifiedSettlerFunctionalTest {
 
         assertDebtsSettleBalances(transactions, result);
         assertEquals(6, result.size());
-        assertFalse(result.stream().anyMatch(d -> d.from().equals(wonder.name()) || d.to().equals(wonder.name())));
+        assertFalse(result.stream().anyMatch(d -> d.from().equals(wonder.participantId()) || d.to().equals(wonder.participantId())));
     }
 
     @TestFactory

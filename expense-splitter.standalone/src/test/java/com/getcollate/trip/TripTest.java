@@ -36,40 +36,40 @@ class TripTest {
     }
 
     @Test
-    void getParticipantShouldReturnParticipantByName() {
+    void getParticipantShouldReturnParticipantById() {
         Trip trip = new Trip("Bangkok", List.of(new Participant("A", "1"), new Participant("B", "2")));
 
-        Participant participant = trip.getParticipant("A");
+        Participant participant = trip.getParticipant("1");
 
         assertEquals("A", participant.name());
         assertEquals("1", participant.participantId());
     }
 
     @Test
-    void getParticipantShouldThrowWhenNameDoesNotExist() {
+    void getParticipantShouldThrowWhenIdDoesNotExist() {
         Trip trip = new Trip("Bangkok", List.of(new Participant("A", "1")));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> trip.getParticipant("X"));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> trip.getParticipant("99"));
 
         assertTrue(ex.getMessage().contains("Participant not found in the trip"));
     }
 
     @Test
-    void addParticipantsShouldMakeNewParticipantRetrievable() {
+    void addParticipantsShouldMakeNewParticipantRetrievableById() {
         Trip trip = new Trip("Bangkok", List.of(new Participant("A", "1")));
 
         trip.addParticipants(List.of(new Participant("B", "2")));
 
-        assertEquals("B", trip.getParticipant("B").name());
+        assertEquals("B", trip.getParticipant("2").name());
     }
 
     @Test
-    void removeParticipantsShouldRemoveParticipantFromLookup() {
+    void removeParticipantsShouldRemoveParticipantFromLookupById() {
         Trip trip = new Trip("Bangkok", List.of(new Participant("A", "1"), new Participant("B", "2")));
 
-        trip.removeParticipants(List.of("B"));
+        trip.removeParticipants(List.of("2"));
 
-        assertThrows(RuntimeException.class, () -> trip.getParticipant("B"));
+        assertThrows(RuntimeException.class, () -> trip.getParticipant("2"));
     }
 
     @Test
@@ -83,12 +83,12 @@ class TripTest {
     @Test
     void settleShouldDelegateToProvidedSettler() {
         Trip trip = new Trip("Bangkok", List.of(new Participant("A", "1")));
-        CapturingSettler settler = new CapturingSettler(List.of(new Debt("A", "B", 5f)));
+        CapturingSettler settler = new CapturingSettler(List.of(new Debt("1", "2", 5f)));
 
         List<Debt> result = trip.settle(settler);
 
         assertEquals(1, result.size());
-        assertEquals("A", result.get(0).from());
+        assertEquals("1", result.get(0).from());
         assertNotNull(settler.receivedTransactions);
     }
 

@@ -32,7 +32,7 @@ public class Trip {
             throw new RuntimeException("Participants cannot be empty");
         this.participants = new ArrayList<>(participants);
         this.participantMap = new HashMap<>();
-        participants.forEach(participant -> participantMap.put(participant.name(), participant));
+        participants.forEach(participant -> participantMap.put(participant.participantId(), participant));
         this.balanceSheet = new BalanceSheet();
     }
 
@@ -41,7 +41,7 @@ public class Trip {
         if (!duplicate.isEmpty())
             throw new RuntimeException("Duplicate participants found: " + duplicate);
         this.participants.addAll(participants);
-        participants.forEach(participant -> participantMap.put(participant.name(), participant));
+        participants.forEach(participant -> participantMap.put(participant.participantId(), participant));
         return this;
     }
 
@@ -54,10 +54,10 @@ public class Trip {
         return this;
     }
 
-    public Participant getParticipant(String participantName) {
-        Participant participant = participantMap.get(participantName);
+    public Participant getParticipant(String participantId) {
+        Participant participant = participantMap.get(participantId);
         if (participant == null)
-            throw new RuntimeException("Participant not found in the trip: " + this.tripName + " with id: " + this.tripId + " and participant name: " + participantName);
+            throw new RuntimeException("Participant not found in the trip: " + this.tripName + " with id: " + this.tripId + " and participant id: " + participantId);
         return participant;
     }
 

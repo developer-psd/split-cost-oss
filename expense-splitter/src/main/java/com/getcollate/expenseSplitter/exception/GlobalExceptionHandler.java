@@ -24,6 +24,13 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", e.getMessage()));
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
+        logger.error("Validation Error: {}", e.getMessage());
+        return ResponseEntity.unprocessableEntity()
+                .body(Map.of("error", e.getMessage()));
+    }
+
     // 3. Handler for custom DuplicateInsertionException
     @ExceptionHandler(DuplicateInsertionException.class)
     public ResponseEntity<Map<String, String>> handleDuplicateInsertionException(DuplicateInsertionException e) {

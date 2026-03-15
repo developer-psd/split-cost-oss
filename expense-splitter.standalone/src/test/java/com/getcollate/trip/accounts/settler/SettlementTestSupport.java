@@ -61,6 +61,10 @@ final class SettlementTestSupport {
         return from + "->" + to;
     }
 
+    static String keyOf(Participant participant) {
+        return participant.participantId();
+    }
+
     static Map<String, Integer> debtMapInCents(List<Debt> debts) {
         Map<String, Integer> map = new LinkedHashMap<>();
         for (Debt debt : debts) {
@@ -78,8 +82,8 @@ final class SettlementTestSupport {
         for (int i = 0; i < beneficiaries.size(); i++) {
             Participant beneficiary = beneficiaries.get(i);
             int share = baseShare + (i < remainder ? 1 : 0);
-            if (!beneficiary.name().equals(payer.name()) && share > 0) {
-                expected.put(edge(beneficiary.name(), payer.name()), share);
+            if (!keyOf(beneficiary).equals(keyOf(payer)) && share > 0) {
+                expected.put(edge(keyOf(beneficiary), keyOf(payer)), share);
             }
         }
         return expected;
@@ -89,10 +93,10 @@ final class SettlementTestSupport {
         Map<String, Integer> net = new LinkedHashMap<>();
 
         for (Transaction transaction : transactions) {
-            String payer = transaction.spentBy().name();
+            String payer = keyOf(transaction.spentBy());
             net.putIfAbsent(payer, 0);
             for (Participant participant : transaction.benefittedBy()) {
-                net.putIfAbsent(participant.name(), 0);
+                net.putIfAbsent(keyOf(participant), 0);
             }
 
             if (transaction.shareType() == SHARETYPE.SPONSORED) {
@@ -108,7 +112,7 @@ final class SettlementTestSupport {
             for (int i = 0; i < count; i++) {
                 Participant beneficiary = transaction.benefittedBy().get(i);
                 int share = baseShare + (i < remainder ? 1 : 0);
-                net.put(beneficiary.name(), net.get(beneficiary.name()) - share);
+                net.put(keyOf(beneficiary), net.get(keyOf(beneficiary)) - share);
             }
         }
 

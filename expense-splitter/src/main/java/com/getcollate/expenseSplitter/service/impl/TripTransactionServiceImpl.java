@@ -5,6 +5,7 @@ import com.getcollate.expenseSplitter.pojo.PostTransactionRequest;
 import com.getcollate.expenseSplitter.repository.TripTransactionReporitory;
 import com.getcollate.expenseSplitter.service.TripTransactionService;
 import com.getcollate.trip.Participant;
+import com.getcollate.trip.Trip;
 import com.getcollate.trip.accounts.CATEGORY;
 import com.getcollate.trip.accounts.SHARETYPE;
 import com.getcollate.trip.accounts.Transaction;
@@ -41,6 +42,7 @@ public class TripTransactionServiceImpl implements TripTransactionService {
 
     @Override
     public List<Transaction> createTransaction(String tripId, PostTransactionRequest transactionRequest) {
+        Trip trip = tripTransactionReporitory.getTripForTransaction(tripId);
         List<Transaction> mappedTransactions = transactionRequest.getTransactions().stream().map(req -> {
             try {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -51,11 +53,13 @@ public class TripTransactionServiceImpl implements TripTransactionService {
                 }
                 return new Transaction(
                         Float.valueOf(req.getSpentAmount()),
-                        new Participant(req.getSpentBy()), // Wrapping the String ID into a Participant object
+                        trip.getParticipant(req.getSpentBy()), // Wrapping the String ID into a Participant object
                         CATEGORY.valueOf(req.getSpentOn().toUpperCase()), // Converting String to Enum
-                        SHARETYPE.EQUAL, // NOTE: This was missing in your request DTO, defaulting to EQUAL
+                        SHARETYPE.EQUAL, // I defaulted the share type to be EQUAL... SHARETYPE SPONSORED also works!
                         dateFormat.parse(req.getSpentDate()), // Parsing the DD/MM/YYYY string
-                        req.getBenefittedBy().stream().map(Participant::new).toList() // Converting List<String> to List<Participant>
+                        req.getBenefittedBy().stream()
+                                .map(participantId -> trip.getParticipant(participantId))
+                                .toList() // Converting List<String> to List<Participant>
                 );
             } catch (ParseException e) {
                 throw new ValidationException("Invalid date format for: " + req.getSpentDate());

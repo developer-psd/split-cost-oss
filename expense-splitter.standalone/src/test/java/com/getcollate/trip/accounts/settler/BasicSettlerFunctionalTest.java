@@ -132,7 +132,7 @@ class BasicSettlerFunctionalTest {
 
         List<Debt> result = settler.settle(List.of(first, second));
 
-        assertDebtsExactlyMatch("Merged raw debt should add cents across matching pairs", List.of(new Debt("B", "A", 30.00f)).stream().collect(java.util.stream.Collectors.toMap(d -> edge(d.from(), d.to()), d -> toCents(d.amount()), (x, y) -> y, java.util.LinkedHashMap::new)), result);
+        assertDebtsExactlyMatch("Merged raw debt should add cents across matching pairs", java.util.Map.of(edge("2", "1"), 30_00), result);
     }
 
     @Test
@@ -145,7 +145,7 @@ class BasicSettlerFunctionalTest {
 
         assertDebtsExactlyMatch(
                 "First beneficiary should receive the first extra cent from remainder distribution",
-                java.util.Map.of(edge("B", "A"), 34, edge("C", "A"), 33),
+                java.util.Map.of(edge("2", "1"), 34, edge("3", "1"), 33),
                 settler.settle(List.of(transaction))
         );
     }

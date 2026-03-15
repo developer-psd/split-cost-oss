@@ -7,11 +7,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class ParticipantTest {
 
     @Test
-    void shouldUseNameAsDefaultParticipantId() {
+    void implicitConstructorShouldGenerateUsableParticipantId() {
         Participant participant = new Participant("Pranav");
 
         assertEquals("Pranav", participant.name());
-        assertEquals("Pranav", participant.participantId());
+        assertNotNull(participant.participantId());
+        assertFalse(participant.participantId().isBlank());
     }
 
     @Test

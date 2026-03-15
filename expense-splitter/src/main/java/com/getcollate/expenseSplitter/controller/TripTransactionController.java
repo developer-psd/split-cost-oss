@@ -29,7 +29,23 @@ public class TripTransactionController {
         this.service = service;
     }
 
-    @GetMapping("/transaction/{transactionId}")
+    @GetMapping("/")
+    public ResponseEntity<List<Map<String, Object>>> getAllTransactions(@PathVariable String tripId, String transactionId) {
+        logger.info("TripId: " + tripId + " TransactionId: " + transactionId);
+        List<Transaction> transactions = service.getTransactions(tripId);
+        return ResponseEntity.ok().body(transactions.stream()
+                .map(transaction -> Map.of(
+                        "transactionId", transaction.transactionId(),
+                        "benefittedBy", transaction.benefittedBy(),
+                        "amount", transaction.spentAmount(),
+                        "shareType", transaction.shareType(),
+                        "spentBy", transaction.spentBy(),
+                        "spentDate", transaction.spentDate().toString(),
+                        "spentOn", transaction.spentOn()
+                )).toList());
+    }
+
+    @GetMapping("/{transactionId}")
     public ResponseEntity<Map<String, Object>> queryTransactions(@PathVariable String tripId, String transactionId) {
         logger.info("TripId: " + tripId + " TransactionId: " + transactionId);
         Transaction transaction = service.getTransaction(tripId, transactionId);

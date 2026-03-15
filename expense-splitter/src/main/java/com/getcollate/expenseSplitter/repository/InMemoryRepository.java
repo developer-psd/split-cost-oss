@@ -136,7 +136,7 @@ public class InMemoryRepository implements TripRepository, SettlementRepository,
         if (trips.get(tripId) == null)
             throw new ValidationException("Trip not found");
         List<Transaction> transactions = trips.get(tripId).getBalanceSheet().getTransactions();
-        Stream<Transaction> transaction = transactions.stream().filter((t) -> t.transactionId() == transactionId);
+        Stream<Transaction> transaction = transactions.stream().filter((t) -> t.transactionId().equals(transactionId));
         if (transaction.count() == 0)
             throw new ValidationException("Transaction not found");
         return transaction.findFirst().get();

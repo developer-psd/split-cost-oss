@@ -24,14 +24,14 @@ public class App
         System.out.println( "Hello World! New Changes inComing from the Main class!" );
 
 //        Trip trip = new Trip("Trip to Bali", Arrays.asList("John", "Jane", "Jack"), SimplifiedBalanceSheet.class);
-        Trip trip = new Trip("Trip to Bali", Arrays.asList(
-                new Participant("John"),
-                new Participant("Jane"),
-                new Participant("Jack")));
+        Participant p1 = new Participant("John");
+        Participant p2 = new Participant("Jane");
+        Participant p3 = new Participant("Jack");
+        Trip trip = new Trip("Trip to Bali", Arrays.asList(p1, p2, p3));
 
         List<Transaction> listOfTransactions = Arrays.asList(
-                new Transaction(300.0f, trip.getParticipant("John"), CATEGORY.FOOD, SHARETYPE.EQUAL, new Date(), Arrays.asList(
-                        trip.getParticipant("Jane"), trip.getParticipant("Jack"), trip.getParticipant("John")
+                new Transaction(300.0f, p1, CATEGORY.FOOD, SHARETYPE.EQUAL, new Date(), Arrays.asList(
+                        p1, p2, p3
                 )));
         trip.addTransactions(listOfTransactions); // returns transaction ids as keys and the transaction details as the value
         List<Debt> finalSettlement = trip.settle(SettlerFactory.create(SIMPLIFIED));

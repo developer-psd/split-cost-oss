@@ -16,12 +16,12 @@ public class SimplifiedSettler implements Settler {
 
         Map<String, Integer> netBalancesInCents = buildNetBalancesInCents(transactions);
 
-        List<String> participantNames = new ArrayList<>();
+        List<String> participantIds = new ArrayList<>();
         List<Integer> balances = new ArrayList<>();
 
         for (Map.Entry<String, Integer> entry : netBalancesInCents.entrySet()) {
             if (entry.getValue() != 0) {
-                participantNames.add(entry.getKey());
+                participantIds.add(entry.getKey());
                 balances.add(entry.getValue());
             }
         }
@@ -31,7 +31,7 @@ public class SimplifiedSettler implements Settler {
         }
 
         BestSolution bestSolution = new BestSolution();
-        dfs(0, participantNames, balances, new ArrayList<>(), bestSolution);
+        dfs(0, participantIds, balances, new ArrayList<>(), bestSolution);
 
         return bestSolution.debts;
     }
@@ -43,7 +43,7 @@ public class SimplifiedSettler implements Settler {
     // have introduced dfs with pruning
     private void dfs(
             int start,
-            List<String> participantNames,
+            List<String> participantIds,
             List<Integer> balances,
             List<Debt> currentDebts,
             BestSolution bestSolution
@@ -108,8 +108,8 @@ public class SimplifiedSettler implements Settler {
             if (startBalance < 0) {
                 // start is debtor, candidate is creditor
                 settlementDebt = createDebt(
-                        participantNames.get(start),
-                        participantNames.get(i),
+                        participantIds.get(start),
+                        participantIds.get(i),
                         transferInCents
                 );
                 newStartBalance = startBalance + transferInCents;
@@ -117,8 +117,8 @@ public class SimplifiedSettler implements Settler {
             } else {
                 // start is creditor, candidate is debtor
                 settlementDebt = createDebt(
-                        participantNames.get(i),
-                        participantNames.get(start),
+                        participantIds.get(i),
+                        participantIds.get(start),
                         transferInCents
                 );
                 newStartBalance = startBalance - transferInCents;
@@ -131,7 +131,7 @@ public class SimplifiedSettler implements Settler {
 
             dfs(
                     newStartBalance == 0 ? start + 1 : start,
-                    participantNames,
+                    participantIds,
                     balances,
                     currentDebts,
                     bestSolution
@@ -157,8 +157,8 @@ public class SimplifiedSettler implements Settler {
         for (Transaction transaction : transactions) {
             validate(transaction);
 
-            String payerName = participantKey(transaction.spentBy());
-            ensurePresent(netBalancesInCents, payerName);
+            String payerId = participantKey(transaction.spentBy());
+            ensurePresent(netBalancesInCents, payerId);
 
             for (Participant participant : transaction.benefittedBy()) {
                 ensurePresent(netBalancesInCents, participantKey(participant));
@@ -171,20 +171,20 @@ public class SimplifiedSettler implements Settler {
             int totalAmountInCents = toCents(transaction.spentAmount());
 
             netBalancesInCents.put(
-                    payerName,
-                    netBalancesInCents.get(payerName) + totalAmountInCents
+                    payerId,
+                    netBalancesInCents.get(payerId) + totalAmountInCents
             );
 
             Map<String, Integer> sharesInCents =
                     splitEquallyInCents(totalAmountInCents, transaction.benefittedBy());
 
             for (Map.Entry<String, Integer> entry : sharesInCents.entrySet()) {
-                String participantName = entry.getKey();
+                String participantId = entry.getKey();
                 int shareInCents = entry.getValue();
 
                 netBalancesInCents.put(
-                        participantName,
-                        netBalancesInCents.get(participantName) - shareInCents
+                        participantId,
+                        netBalancesInCents.get(participantId) - shareInCents
                 );
             }
         }
@@ -208,8 +208,8 @@ public class SimplifiedSettler implements Settler {
         return shares;
     }
 
-    private void ensurePresent(Map<String, Integer> netBalancesInCents, String participantName) {
-        netBalancesInCents.putIfAbsent(participantName, 0);
+    private void ensurePresent(Map<String, Integer> netBalancesInCents, String participantId) {
+        netBalancesInCents.putIfAbsent(participantId, 0);
     }
 
     private void validate(Transaction transaction) {
@@ -239,7 +239,7 @@ public class SimplifiedSettler implements Settler {
     }
 
     private String participantKey(Participant participant) {
-        return participant.name();
+        return participant.participantId();
     }
 
     private static class BestSolution {

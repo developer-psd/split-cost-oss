@@ -29,21 +29,21 @@ public class BasicSettler implements Settler {
             Map<String, Integer> participantShareInCents =
                     splitEquallyInCents(totalAmountInCents, transaction.benefittedBy());
 
-            String payerName = participantKey(transaction.spentBy());
+            String participantId = participantKey(transaction.spentBy());
 
             for (Participant beneficiary : transaction.benefittedBy()) {
-                String beneficiaryName = participantKey(beneficiary);
+                String beneficiaryId = participantKey(beneficiary);
 
-                if (beneficiaryName.equals(payerName)) {
+                if (beneficiaryId.equals(participantId)) {
                     continue;
                 }
 
-                int shareInCents = participantShareInCents.get(beneficiaryName);
+                int shareInCents = participantShareInCents.get(beneficiaryId);
                 if (shareInCents <= 0) {
                     continue;
                 }
 
-                DebtKey debtKey = new DebtKey(beneficiaryName, payerName);
+                DebtKey debtKey = new DebtKey(beneficiaryId, participantId);
                 mergedDebtsInCents.merge(debtKey, shareInCents, Integer::sum);
             }
         }
@@ -111,7 +111,7 @@ public class BasicSettler implements Settler {
     }
 
     private String participantKey(Participant participant) {
-        return participant.name();
+        return participant.participantId();
     }
 
     private record DebtKey(String debtor, String creditor) {}

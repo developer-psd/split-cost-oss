@@ -14,7 +14,7 @@ class AppTest {
      */
     @Test
     void shouldAnswerWithTrue() {
-        System.out.println("Aum Sri Sai Ram");
+        System.out.println("Testting the test run");
         assertTrue(true);
     }
 }
