@@ -1,0 +1,37 @@
+@startuml
+
+!theme plain
+left to right direction
+skinparam linetype ortho
+
+class DataSourceVerifier
+class ExpenseSplitterApplication
+class GlobalExceptionHandler
+class GlobalValidationExceptionHandler
+class InMemoryRepository
+class PostgresAggregateMapper
+class PostgresSettlementRepository
+class PostgresTripRepository
+class PostgresTripTransactionRepository
+class SettlementController
+class SettlementServiceImpl
+class TripController
+class TripServiceImpl
+class TripTransactionController
+class TripTransactionServiceImpl
+
+ExpenseSplitterApplication         -[#000082,plain]->  DataSourceVerifier                
+ExpenseSplitterApplication         -[#000082,plain]->  GlobalExceptionHandler            
+ExpenseSplitterApplication         -[#000082,plain]->  GlobalValidationExceptionHandler  
+ExpenseSplitterApplication         -[#000082,plain]->  InMemoryRepository                
+ExpenseSplitterApplication         -[#000082,plain]->  PostgresAggregateMapper           
+ExpenseSplitterApplication         -[#000082,plain]->  PostgresSettlementRepository      
+ExpenseSplitterApplication         -[#000082,plain]->  PostgresTripRepository            
+ExpenseSplitterApplication         -[#000082,plain]->  PostgresTripTransactionRepository 
+ExpenseSplitterApplication         -[#000082,plain]->  SettlementController              
+ExpenseSplitterApplication         -[#000082,plain]->  SettlementServiceImpl             
+ExpenseSplitterApplication         -[#000082,plain]->  TripController                    
+ExpenseSplitterApplication         -[#000082,plain]->  TripServiceImpl                   
+ExpenseSplitterApplication         -[#000082,plain]->  TripTransactionController         
+ExpenseSplitterApplication         -[#000082,plain]->  TripTransactionServiceImpl        
+@enduml

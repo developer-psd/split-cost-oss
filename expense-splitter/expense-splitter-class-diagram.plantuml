@@ -1,0 +1,502 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class AbstractPostgresRepositoryIT {
+  ~ AbstractPostgresRepositoryIT(): 
+  ~ cleanDatabase(): void
+  ~ properties(DynamicPropertyRegistry): void
+}
+class DataSourceVerifier {
+  + DataSourceVerifier(DataSource): 
+  + verify(): void
+}
+class DuplicateInsertionException {
+  + DuplicateInsertionException(String): 
+}
+class ExpenseSplitterApplication {
+  + ExpenseSplitterApplication(): 
+  + main(String[]): void
+}
+class ExpenseSplitterApplicationTests {
+  ~ ExpenseSplitterApplicationTests(): 
+  ~ contextLoads(): void
+}
+class GlobalExceptionHandler {
+  + GlobalExceptionHandler(): 
+  + handleDuplicateInsertionException(DuplicateInsertionException): ResponseEntity<Map<String, String>>
+  + handleRuntimeException(RuntimeException): ResponseEntity<Map<String, String>>
+  + handleValidationException(ValidationException): ResponseEntity<Map<String, String>>
+}
+class GlobalExceptionHandlerContractWebMvcTest {
+  ~ GlobalExceptionHandlerContractWebMvcTest(): 
+  ~ shouldMapValidationExceptionTo422(): void
+  ~ setUp(): void
+  ~ shouldMapDuplicateInsertionExceptionTo409(): void
+  ~ shouldMapRuntimeExceptionTo422(): void
+}
+class GlobalValidationExceptionHandler {
+  + GlobalValidationExceptionHandler(): 
+  + handleValidationExceptions(MethodArgumentNotValidException): ResponseEntity<Map<String, String>>
+}
+class InMemoryRepository {
+  + InMemoryRepository(): 
+  + getTransaction(String, String): Transaction
+  + deleteTransaction(String, String): void
+  + persistsettlement(String, List<Debt>): boolean
+  + getTripForTransaction(String): Trip
+  + removeParticipants(String, List<String>): Trip
+  + getTrip(String): Trip
+  + getAllTransactions(String): List<Transaction>
+  + deleteTrip(String): void
+  + createTrip(Trip): boolean
+  + getTripById(String): Trip
+  + createTransaction(String, List<Transaction>): boolean
+  + addParticipants(String, List<Participant>): Trip
+   allTrips: List<Trip>
+}
+class POSTTripRequest {
+  + POSTTripRequest(): 
+  ~ participants: List<String>
+  ~ name: String
+  + toString(): String
+   name: String
+   participants: List<String>
+}
+class PUTTripRequest {
+  + PUTTripRequest(): 
+  ~ participants: List<String>
+  + toString(): String
+   participants: List<String>
+}
+class PostTransactionRequest {
+  + PostTransactionRequest(): 
+  ~ transactions: List<RequestTransactions>
+  + toString(): String
+   transactions: List<RequestTransactions>
+}
+class PostgresAggregateMapper {
+  + PostgresAggregateMapper(TripParticipantJpaRepository, TripTransactionJpaRepository, TripTransactionBeneficiaryJpaRepository, TripCurrentSettlementJpaRepository): 
+  - requiredParticipant(Map<String, Participant>, String): Participant
+  + toTransaction(TripTransactionEntity, Map<String, Participant>): Transaction
+  + amount(Float): BigDecimal
+  + toDebt(TripCurrentSettlementEntity): Debt
+  + toTripAggregate(TripEntity, boolean): Trip
+  + toParticipant(TripParticipantEntity): Participant
+}
+class PostgresSettlementRepository {
+  + PostgresSettlementRepository(TripJpaRepository, TripCurrentSettlementJpaRepository, PostgresAggregateMapper): 
+  + persistsettlement(String, List<Debt>): boolean
+  + getTrip(String): Trip
+}
+class PostgresSettlementRepositoryIT {
+  ~ PostgresSettlementRepositoryIT(): 
+  ~ persistSettlement_shouldRejectMissingTrip(): void
+  ~ persistSettlement_shouldBeVisibleFromLoadedTrip(): void
+  ~ persistSettlement_withEmptyList_shouldClearPreviousSnapshot(): void
+  ~ getTrip_shouldRejectMissingTrip(): void
+  ~ persistSettlement_shouldRewritePreviousSnapshotNotAppend(): void
+}
+class PostgresTripRepository {
+  + PostgresTripRepository(TripJpaRepository, TripParticipantJpaRepository, PostgresAggregateMapper): 
+  - toParticipantEntity(UUID, Participant): TripParticipantEntity
+  + addParticipants(String, List<Participant>): Trip
+  + getTripById(String): Trip
+  + createTrip(Trip): boolean
+  - ensureTripExists(UUID): void
+  + deleteTrip(String): void
+  - parseTripId(String): UUID
+  + removeParticipants(String, List<String>): Trip
+   allTrips: List<Trip>
+}
+class PostgresTripRepositoryIT {
+  ~ PostgresTripRepositoryIT(): 
+  ~ addParticipants_shouldRejectDuplicateParticipantId(): void
+  ~ deleteTrip_shouldRemoveTrip(): void
+  ~ removeParticipants_shouldRejectMissingParticipant(): void
+  ~ createTrip_andGetTripById_shouldRoundTrip(): void
+  ~ createTrip_shouldRejectDuplicateTrip(): void
+  ~ addParticipants_shouldRejectDuplicateParticipantName(): void
+  ~ getAllTrips_shouldRejectWhenNoTripsExist(): void
+  ~ removeParticipants_shouldSoftDeleteAndHideParticipantFromReturnedTrip(): void
+  ~ removeParticipants_shouldRejectAlreadyInactiveParticipant(): void
+  ~ addParticipants_shouldPersistAndReturnUpdatedTrip(): void
+}
+class PostgresTripTransactionRepository {
+  + PostgresTripTransactionRepository(TripJpaRepository, TripTransactionJpaRepository, TripTransactionBeneficiaryJpaRepository, TripCurrentSettlementJpaRepository, PostgresAggregateMapper): 
+  + getTripForTransaction(String): Trip
+  - toLocalDate(Date): LocalDate
+  + getTransaction(String, String): Transaction
+  + deleteTransaction(String, String): void
+  + createTransaction(String, List<Transaction>): boolean
+  - toTransactionEntity(UUID, Transaction): TripTransactionEntity
+  - ensureTripExists(UUID): void
+  - toBeneficiaryEntities(UUID, Transaction): List<TripTransactionBeneficiaryEntity>
+  + getAllTransactions(String): List<Transaction>
+  - parseTripId(String): UUID
+}
+class PostgresTripTransactionRepositoryIT {
+  ~ PostgresTripTransactionRepositoryIT(): 
+  ~ getTransaction_shouldRejectMissingTransaction(): void
+  ~ deleteTransaction_shouldDeleteTransactionAndClearPersistedSettlementSnapshot(): void
+  ~ createTransaction_shouldRejectDuplicateTransactionIds(): void
+  ~ createTransaction_andReadBack_shouldRoundTripInOrder(): void
+  ~ createTransaction_shouldRejectMissingTrip(): void
+  ~ getTripForTransaction_shouldReturnActiveParticipantsOnly(): void
+  ~ deleteTransaction_shouldRejectMissingTransaction(): void
+}
+class RequestTransactions {
+  + RequestTransactions(): 
+  ~ spentDate: String
+  ~ benefittedBy: List<String>
+  ~ spentAmount: Integer
+  ~ spentBy: String
+  ~ spentOn: String
+  + toString(): String
+   benefittedBy: List<String>
+   spentAmount: Integer
+   spentOn: String
+   spentBy: String
+   spentDate: String
+}
+class SettlementController {
+  + SettlementController(SettlementService): 
+  + settle(String, boolean): ResponseEntity<List<Map<String, String>>>
+}
+class SettlementControllerWebMvcTest {
+  ~ SettlementControllerWebMvcTest(): 
+  ~ settle_shouldReturnMappedDebtsForBasicMode(): void
+  ~ settle_shouldReturn400WhenSimplifyFlagIsMissing(): void
+  ~ settle_shouldReturnMappedDebtsForSimplifiedMode(): void
+  ~ settle_shouldTranslateRuntimeExceptionsTo422(): void
+}
+interface SettlementRepository << interface >> {
+  + getTrip(String): Trip
+  + persistsettlement(String, List<Debt>): boolean
+}
+interface SettlementService << interface >> {
+  + settle(String, boolean): List<Debt>
+}
+class SettlementServiceImpl {
+  + SettlementServiceImpl(SettlementRepository): 
+  + settle(String, boolean): List<Debt>
+}
+class SettlementServiceImplTest {
+  ~ SettlementServiceImplTest(): 
+  ~ settle_shouldUseSimplifiedModeAndPersist(): void
+  ~ settle_shouldUseBasicModeAndPersist(): void
+  ~ settle_shouldNotPersistWhenTripSettleFails(): void
+  ~ settle_shouldNotPersistWhenTripLoadFails(): void
+}
+class TestController {
+  ~ TestController(): 
+  ~ runtime(): ResponseEntity<Void>
+  ~ duplicate(): ResponseEntity<Void>
+  ~ validation(): ResponseEntity<Void>
+}
+class TestFixtures {
+  - TestFixtures(): 
+  + request(String, String, String, int, List<String>): PostTransactionRequest
+  + trip(String, String[]): Trip
+  + transaction(String, float, String, CATEGORY, String, List<String>): Transaction
+  + participant(String): Participant
+  + debt(String, String, float): Debt
+  + date(String): Date
+}
+class TripController {
+  + TripController(TripService): 
+  + postTrip(POSTTripRequest): ResponseEntity<Map<String, Object>>
+  + addParticipants(PUTTripRequest, String): ResponseEntity<Map<String, Object>>
+  + removeParticipants(PUTTripRequest, String): ResponseEntity<Map<String, Object>>
+  + deleteTrip(String): ResponseEntity<Map<String, Object>>
+  + getTrip(String): ResponseEntity<Map<String, Object>>
+   allTrips: ResponseEntity<List<Map<String, Object>>>
+}
+class TripControllerWebMvcTest {
+  ~ TripControllerWebMvcTest(): 
+  ~ postTrip_shouldReturn400WhenParticipantsAreEmpty(): void
+  ~ addParticipants_shouldReturn400WhenListIsEmpty(): void
+  ~ postTrip_shouldMapValidationExceptionTo422(): void
+  ~ postTrip_shouldReturn400WhenParticipantNameIsBlank(): void
+  ~ postTrip_shouldReturnCreatedTrip(): void
+  ~ getAllTrips_shouldReturnTrips(): void
+  ~ postTrip_shouldReturn400WhenNameIsBlank(): void
+  ~ deleteTrip_shouldReturnDeletedTripId(): void
+  ~ addParticipants_shouldMapDuplicateInsertionTo409(): void
+  ~ addParticipants_shouldReturnUpdatedTrip(): void
+  ~ getTrip_shouldReturnTripDetails(): void
+  ~ getTrip_shouldMapRuntimeExceptionTo422(): void
+  ~ removeParticipants_shouldReturnUpdatedTrip(): void
+}
+class TripCurrentSettlementEntity {
+  + TripCurrentSettlementEntity(): 
+  - createdAt: OffsetDateTime
+  - id: TripCurrentSettlementId
+  - fromParticipantId: String
+  - toParticipantId: String
+  - amount: BigDecimal
+   id: TripCurrentSettlementId
+   toParticipantId: String
+   fromParticipantId: String
+   createdAt: OffsetDateTime
+   amount: BigDecimal
+}
+class TripCurrentSettlementId {
+  + TripCurrentSettlementId(): 
+  + TripCurrentSettlementId(UUID, Integer): 
+  - settlementOrder: Integer
+  - tripId: UUID
+  + equals(Object): boolean
+  + hashCode(): int
+   settlementOrder: Integer
+   tripId: UUID
+}
+interface TripCurrentSettlementJpaRepository << interface >> {
+  + findByIdTripIdOrderByIdSettlementOrderAsc(UUID): List<TripCurrentSettlementEntity>
+  + deleteByIdTripId(UUID): void
+}
+class TripEntity {
+  + TripEntity(): 
+  - tripId: UUID
+  - createdAt: OffsetDateTime
+  - tripName: String
+  - updatedAt: OffsetDateTime
+   tripName: String
+   createdAt: OffsetDateTime
+   tripId: UUID
+   updatedAt: OffsetDateTime
+}
+interface TripJpaRepository << interface >>
+class TripParticipantEntity {
+  + TripParticipantEntity(): 
+  - id: TripParticipantId
+  - participantName: String
+  - active: boolean
+  - participantOrder: Long
+  - removedAt: OffsetDateTime
+  - createdAt: OffsetDateTime
+   participantName: String
+   active: boolean
+   participantOrder: Long
+   createdAt: OffsetDateTime
+   id: TripParticipantId
+   removedAt: OffsetDateTime
+}
+class TripParticipantId {
+  + TripParticipantId(UUID, String): 
+  + TripParticipantId(): 
+  - tripId: UUID
+  - participantId: String
+  + hashCode(): int
+  + equals(Object): boolean
+   participantId: String
+   tripId: UUID
+}
+interface TripParticipantJpaRepository << interface >> {
+  + findByIdTripIdAndParticipantName(UUID, String): Optional<TripParticipantEntity>
+  + findByIdTripIdAndActiveTrueOrderByParticipantOrderAsc(UUID): List<TripParticipantEntity>
+  + findByIdTripIdOrderByParticipantOrderAsc(UUID): List<TripParticipantEntity>
+  + existsByIdTripIdAndActiveTrue(UUID): boolean
+}
+interface TripRepository << interface >> {
+  + getTripById(String): Trip
+  + removeParticipants(String, List<String>): Trip
+  + deleteTrip(String): void
+  + createTrip(Trip): boolean
+  + addParticipants(String, List<Participant>): Trip
+   allTrips: List<Trip>
+}
+interface TripService << interface >> {
+  + addParticipants(String, List<String>): Trip
+  + deleteTrip(String): void
+  + createTrip(String, List<String>): Trip
+  + removeParticipants(String, List<String>): Trip
+  + getTripById(String): Trip
+   allTrips: List<Trip>
+}
+class TripServiceImpl {
+  + TripServiceImpl(TripRepository): 
+  + createTrip(String, List<String>): Trip
+  + getTripById(String): Trip
+  + removeParticipants(String, List<String>): Trip
+  + deleteTrip(String): void
+  + addParticipants(String, List<String>): Trip
+   allTrips: List<Trip>
+}
+class TripServiceImplTest {
+  ~ TripServiceImplTest(): 
+  ~ addParticipants_shouldMapNamesAndDelegate(): void
+  ~ createTrip_shouldMapParticipantNamesToDomainParticipants(): void
+  ~ removeParticipants_shouldDelegate(): void
+  ~ getAllTrips_shouldDelegate(): void
+  ~ deleteTrip_shouldDelegate(): void
+  ~ getTripById_shouldDelegate(): void
+}
+class TripTransactionBeneficiaryEntity {
+  + TripTransactionBeneficiaryEntity(): 
+  - id: TripTransactionBeneficiaryId
+  - beneficiaryParticipantId: String
+   beneficiaryParticipantId: String
+   id: TripTransactionBeneficiaryId
+}
+class TripTransactionBeneficiaryId {
+  + TripTransactionBeneficiaryId(): 
+  + TripTransactionBeneficiaryId(UUID, UUID, Integer): 
+  - tripId: UUID
+  - beneficiaryOrder: Integer
+  - transactionId: UUID
+  + equals(Object): boolean
+  + hashCode(): int
+   tripId: UUID
+   transactionId: UUID
+   beneficiaryOrder: Integer
+}
+interface TripTransactionBeneficiaryJpaRepository << interface >> {
+  + findByIdTripIdAndIdTransactionIdOrderByIdBeneficiaryOrderAsc(UUID, UUID): List<TripTransactionBeneficiaryEntity>
+}
+class TripTransactionController {
+  + TripTransactionController(TripTransactionService): 
+  + getTransaction(String, String): ResponseEntity<Map<String, Object>>
+  + getAllTransactions(String): ResponseEntity<List<Map<String, Object>>>
+  + deleteTransaction(String, String): ResponseEntity<Map<String, Object>>
+  + postTransaction(String, PostTransactionRequest): ResponseEntity<List<Map<String, Object>>>
+}
+class TripTransactionControllerWebMvcTest {
+  ~ TripTransactionControllerWebMvcTest(): 
+  ~ postTransaction_shouldReturn400WhenSpentByIsBlank(): void
+  ~ postTransaction_shouldReturnCreatedTransactions(): void
+  ~ getTransaction_shouldMapRuntimeExceptionTo422(): void
+  ~ postTransaction_shouldReturn400WhenBenefittedByIsEmpty(): void
+  ~ getTransactions_shouldReturnAllTransactions(): void
+  ~ deleteTransaction_shouldReturnDeletedTransactionId(): void
+  ~ getTransaction_shouldReturnSingleTransaction(): void
+  ~ postTransaction_shouldReturn400WhenTransactionsArrayIsEmpty(): void
+}
+class TripTransactionEntity {
+  + TripTransactionEntity(): 
+  - spentByParticipantId: String
+  - spentOn: String
+  - shareType: String
+  - createdAt: OffsetDateTime
+  - spentAmount: BigDecimal
+  - id: TripTransactionId
+  - txOrder: Long
+  - spentDate: LocalDate
+   spentAmount: BigDecimal
+   shareType: String
+   spentDate: LocalDate
+   id: TripTransactionId
+   spentOn: String
+   createdAt: OffsetDateTime
+   spentByParticipantId: String
+   txOrder: Long
+}
+class TripTransactionId {
+  + TripTransactionId(): 
+  + TripTransactionId(UUID, UUID): 
+  - tripId: UUID
+  - transactionId: UUID
+  + equals(Object): boolean
+  + hashCode(): int
+   tripId: UUID
+   transactionId: UUID
+}
+interface TripTransactionJpaRepository << interface >> {
+  + findByIdTripIdOrderByTxOrderAsc(UUID): List<TripTransactionEntity>
+}
+interface TripTransactionReporitory << interface >> {
+  + getAllTransactions(String): List<Transaction>
+  + createTransaction(String, List<Transaction>): boolean
+  + getTransaction(String, String): Transaction
+  + deleteTransaction(String, String): void
+  + getTripForTransaction(String): Trip
+}
+interface TripTransactionService << interface >> {
+  + deleteTransaction(String, String): void
+  + getTransaction(String, String): Transaction
+  + createTransaction(String, PostTransactionRequest): List<Transaction>
+  + getTransactions(String): List<Transaction>
+}
+class TripTransactionServiceImpl {
+  + TripTransactionServiceImpl(TripTransactionReporitory): 
+  + getTransactions(String): List<Transaction>
+  + createTransaction(String, PostTransactionRequest): List<Transaction>
+  + getTransaction(String, String): Transaction
+  + deleteTransaction(String, String): void
+}
+class TripTransactionServiceImplTest {
+  ~ TripTransactionServiceImplTest(): 
+  ~ createTransaction_shouldPropagateWhenSpentByParticipantIsMissing(): void
+  ~ createTransaction_shouldRejectInvalidDate(): void
+  ~ createTransaction_shouldPropagateWhenBeneficiaryParticipantIsMissing(): void
+  ~ getTransactions_shouldDelegate(): void
+  ~ deleteTransaction_shouldDelegate(): void
+  ~ getTransaction_shouldDelegate(): void
+  ~ createTransaction_shouldRejectInvalidCategory(): void
+  ~ createTransaction_shouldMapRequestIntoDomainTransactions(): void
+}
+class ValidationException {
+  + ValidationException(String): 
+}
+
+InMemoryRepository                        -[#008200,dashed]-^  SettlementRepository                     
+InMemoryRepository                        -[#008200,dashed]-^  TripRepository                           
+InMemoryRepository                        -[#008200,dashed]-^  TripTransactionReporitory                
+PostTransactionRequest                   "1" *-[#595959,plain]-> "transactions\n*" RequestTransactions                      
+PostgresAggregateMapper                  "1" *-[#595959,plain]-> "settlementJpaRepository\n1" TripCurrentSettlementJpaRepository       
+PostgresAggregateMapper                  "1" *-[#595959,plain]-> "participantJpaRepository\n1" TripParticipantJpaRepository             
+PostgresAggregateMapper                  "1" *-[#595959,plain]-> "beneficiaryJpaRepository\n1" TripTransactionBeneficiaryJpaRepository  
+PostgresAggregateMapper                  "1" *-[#595959,plain]-> "transactionJpaRepository\n1" TripTransactionJpaRepository             
+PostgresSettlementRepository             "1" *-[#595959,plain]-> "mapper\n1" PostgresAggregateMapper                  
+PostgresSettlementRepository              -[#008200,dashed]-^  SettlementRepository                     
+PostgresSettlementRepository             "1" *-[#595959,plain]-> "settlementJpaRepository\n1" TripCurrentSettlementJpaRepository       
+PostgresSettlementRepository             "1" *-[#595959,plain]-> "tripJpaRepository\n1" TripJpaRepository                        
+PostgresSettlementRepositoryIT            -[#000082,plain]-^  AbstractPostgresRepositoryIT             
+PostgresSettlementRepositoryIT           "1" *-[#595959,plain]-> "settlementRepository\n1" PostgresSettlementRepository             
+PostgresSettlementRepositoryIT           "1" *-[#595959,plain]-> "tripRepository\n1" PostgresTripRepository                   
+PostgresSettlementRepositoryIT           "1" *-[#595959,plain]-> "settlementJpaRepository\n1" TripCurrentSettlementJpaRepository       
+PostgresTripRepository                   "1" *-[#595959,plain]-> "mapper\n1" PostgresAggregateMapper                  
+PostgresTripRepository                   "1" *-[#595959,plain]-> "tripJpaRepository\n1" TripJpaRepository                        
+PostgresTripRepository                   "1" *-[#595959,plain]-> "participantJpaRepository\n1" TripParticipantJpaRepository             
+PostgresTripRepository                    -[#008200,dashed]-^  TripRepository                           
+PostgresTripRepositoryIT                  -[#000082,plain]-^  AbstractPostgresRepositoryIT             
+PostgresTripRepositoryIT                 "1" *-[#595959,plain]-> "repository\n1" PostgresTripRepository                   
+PostgresTripRepositoryIT                 "1" *-[#595959,plain]-> "participantJpaRepository\n1" TripParticipantJpaRepository             
+PostgresTripTransactionRepository        "1" *-[#595959,plain]-> "mapper\n1" PostgresAggregateMapper                  
+PostgresTripTransactionRepository        "1" *-[#595959,plain]-> "settlementJpaRepository\n1" TripCurrentSettlementJpaRepository       
+PostgresTripTransactionRepository        "1" *-[#595959,plain]-> "tripJpaRepository\n1" TripJpaRepository                        
+PostgresTripTransactionRepository        "1" *-[#595959,plain]-> "beneficiaryJpaRepository\n1" TripTransactionBeneficiaryJpaRepository  
+PostgresTripTransactionRepository        "1" *-[#595959,plain]-> "transactionJpaRepository\n1" TripTransactionJpaRepository             
+PostgresTripTransactionRepository         -[#008200,dashed]-^  TripTransactionReporitory                
+PostgresTripTransactionRepositoryIT       -[#000082,plain]-^  AbstractPostgresRepositoryIT             
+PostgresTripTransactionRepositoryIT      "1" *-[#595959,plain]-> "settlementRepository\n1" PostgresSettlementRepository             
+PostgresTripTransactionRepositoryIT      "1" *-[#595959,plain]-> "tripRepository\n1" PostgresTripRepository                   
+PostgresTripTransactionRepositoryIT      "1" *-[#595959,plain]-> "transactionRepository\n1" PostgresTripTransactionRepository        
+PostgresTripTransactionRepositoryIT      "1" *-[#595959,plain]-> "settlementJpaRepository\n1" TripCurrentSettlementJpaRepository       
+RequestTransactions                       +-[#820000,plain]-  PostTransactionRequest                   
+SettlementController                     "1" *-[#595959,plain]-> "service\n1" SettlementService                        
+SettlementControllerWebMvcTest           "1" *-[#595959,plain]-> "settlementService\n1" SettlementService                        
+SettlementServiceImpl                    "1" *-[#595959,plain]-> "settlementRepository\n1" SettlementRepository                     
+SettlementServiceImpl                     -[#008200,dashed]-^  SettlementService                        
+SettlementServiceImplTest                "1" *-[#595959,plain]-> "settlementRepository\n1" SettlementRepository                     
+SettlementServiceImplTest                "1" *-[#595959,plain]-> "settlementService\n1" SettlementServiceImpl                    
+TestController                            +-[#820000,plain]-  GlobalExceptionHandlerContractWebMvcTest 
+TripController                           "1" *-[#595959,plain]-> "service\n1" TripService                              
+TripControllerWebMvcTest                 "1" *-[#595959,plain]-> "tripService\n1" TripService                              
+TripCurrentSettlementEntity              "1" *-[#595959,plain]-> "id\n1" TripCurrentSettlementId                  
+TripParticipantEntity                    "1" *-[#595959,plain]-> "id\n1" TripParticipantId                        
+TripServiceImpl                          "1" *-[#595959,plain]-> "tripRepository\n1" TripRepository                           
+TripServiceImpl                           -[#008200,dashed]-^  TripService                              
+TripServiceImplTest                      "1" *-[#595959,plain]-> "tripRepository\n1" TripRepository                           
+TripServiceImplTest                      "1" *-[#595959,plain]-> "tripService\n1" TripServiceImpl                          
+TripTransactionBeneficiaryEntity         "1" *-[#595959,plain]-> "id\n1" TripTransactionBeneficiaryId             
+TripTransactionController                "1" *-[#595959,plain]-> "service\n1" TripTransactionService                   
+TripTransactionControllerWebMvcTest      "1" *-[#595959,plain]-> "tripTransactionService\n1" TripTransactionService                   
+TripTransactionEntity                    "1" *-[#595959,plain]-> "id\n1" TripTransactionId                        
+TripTransactionServiceImpl               "1" *-[#595959,plain]-> "tripTransactionReporitory\n1" TripTransactionReporitory                
+TripTransactionServiceImpl                -[#008200,dashed]-^  TripTransactionService                   
+TripTransactionServiceImplTest           "1" *-[#595959,plain]-> "tripTransactionReporitory\n1" TripTransactionReporitory                
+TripTransactionServiceImplTest           "1" *-[#595959,plain]-> "tripTransactionService\n1" TripTransactionServiceImpl               
+@enduml

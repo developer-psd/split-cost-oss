@@ -24,7 +24,7 @@ public class TripTransactionController {
         this.service = service;
     }
 
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getAllTransactions(@PathVariable String tripId) {
         logger.info("TripId: {}", tripId);
 

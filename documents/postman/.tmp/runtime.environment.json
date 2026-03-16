@@ -1,0 +1,92 @@
+{
+  "id": "runtime-env",
+  "name": "Expense Splitter - Runtime",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "enabled": true
+    },
+    {
+      "key": "run_id",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "trip_id",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "participant_flow_trip_id",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "negative_trip_id",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "transaction_1_id",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "basic_settlement_count",
+      "value": "0",
+      "enabled": true
+    },
+    {
+      "key": "participant_Alice",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "participant_Bob",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "participant_Smith",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "participant_Wonder",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "participant_Mat",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "participant_Philips",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "participant_Aleena",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "participant_Kimberly",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "participant_Kiran",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "transactionsBody",
+      "value": "",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

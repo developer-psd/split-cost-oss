@@ -1,0 +1,233 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class App {
+  + App(): 
+  + main(String[]): void
+}
+class AppTest {
+  ~ AppTest(): 
+  ~ shouldAnswerWithTrue(): void
+}
+class BalanceNode {
+  - BalanceNode(String, int): 
+}
+class BalanceSheet {
+  + BalanceSheet(): 
+  ~ transactions: List<Transaction>
+  + settle(Settler): List<Debt>
+  + addTransactions(List<Transaction>): void
+   transactions: List<Transaction>
+}
+class BalanceSheetTest {
+  ~ BalanceSheetTest(): 
+  ~ shouldStartWithEmptyTransactions(): void
+  ~ addTransactionsShouldAppendTransactions(): void
+  ~ settleShouldDelegateToSettlerWithSameTransactionList(): void
+  ~ setTransactionsShouldReplaceExistingTransactions(): void
+}
+class BasicSettler {
+  + BasicSettler(): 
+  - toCents(Float): int
+  - fromCents(int): Float
+  - toDebtList(Map<DebtKey, Integer>): List<Debt>
+  - validate(Transaction): void
+  - participantKey(Participant): String
+  - splitEquallyInCents(int, List<Participant>): Map<String, Integer>
+  + settle(List<Transaction>): List<Debt>
+}
+class BasicSettlerFunctionalTest {
+  ~ BasicSettlerFunctionalTest(): 
+  ~ settleShouldRespectBeneficiaryOrderWhenDistributingRemainder(): void
+  ~ settleShouldReturnNoDebtWhenPayerIsOnlyBeneficiary(): void
+  ~ settleShouldReturnEmptyListForEmptyTransactions(): void
+  ~ settleShouldRejectNullShareType(): void
+  ~ settleShouldRejectNullBeneficiaries(): void
+  ~ settleShouldMergeMultipleDebtsBetweenSameDebtorAndCreditor(): void
+  ~ settleShouldIgnoreSponsoredTransactions(): void
+  ~ settleShouldRejectNullTransaction(): void
+  ~ settleShouldRejectNegativeAmount(): void
+  ~ settleShouldRejectZeroAmount(): void
+  ~ settleShouldRejectNullPayer(): void
+  ~ settleShouldRejectNullBeneficiary(): void
+  ~ singleExpenseShouldProduceExpectedRawDebtsForEveryParticipantCountFrom2To20(): Stream<DynamicTest>
+  ~ settleShouldReturnEmptyListForNullTransactions(): void
+  ~ settleShouldRejectEmptyBeneficiaries(): void
+}
+enum CATEGORY << enumeration >> {
+  - CATEGORY(): 
+  + values(): CATEGORY[]
+  + valueOf(String): CATEGORY
+}
+class CapturingSettler {
+  - CapturingSettler(List<Debt>): 
+  + settle(List<Transaction>): List<Debt>
+}
+class CapturingSettler {
+  - CapturingSettler(List<Debt>): 
+  + settle(List<Transaction>): List<Debt>
+}
+entity Debt << record >> {
+  + Debt(String, String, Float): 
+  + to(): String
+  + amount(): Float
+  + from(): String
+}
+entity DebtKey << record >> {
+  - DebtKey(String, String): 
+  + debtor(): String
+  + creditor(): String
+}
+entity Participant << record >> {
+  + Participant(String, String): 
+  + Participant(String): 
+  + participantId(): String
+  - generateParticipantId(String): String
+  + name(): String
+  + toString(): String
+}
+class ParticipantTest {
+  ~ ParticipantTest(): 
+  ~ implicitConstructorShouldGenerateUsableParticipantId(): void
+  ~ shouldPreserveExplicitParticipantId(): void
+}
+enum SHARETYPE << enumeration >> {
+  - SHARETYPE(): 
+  + values(): SHARETYPE[]
+  + valueOf(String): SHARETYPE
+}
+enum SettlementMode << enumeration >> {
+  - SettlementMode(): 
+  + values(): SettlementMode[]
+  + valueOf(String): SettlementMode
+}
+class SettlementTestSupport {
+  - SettlementTestSupport(): 
+  ~ participants(int): List<Participant>
+  ~ assertDebtsSettleBalances(List<Transaction>, List<Debt>): void
+  ~ equalExpense(int, Participant, List<Participant>): Transaction
+  ~ toCents(float): int
+  ~ expectedSingleExpenseDebtMapInCents(int, List<Participant>, Participant): Map<String, Integer>
+  ~ edge(String, String): String
+  ~ computeNetBalancesInCents(List<Transaction>): Map<String, Integer>
+  ~ amountFromCents(int): float
+  ~ nonZeroBalanceCount(List<Transaction>): int
+  ~ sponsoredExpense(int, Participant, List<Participant>): Transaction
+  ~ debtMapInCents(List<Debt>): Map<String, Integer>
+  ~ keyOf(Participant): String
+  ~ assertDebtsExactlyMatch(String, Map<String, Integer>, List<Debt>): void
+}
+interface Settler << interface >> {
+  + settle(List<Transaction>): List<Debt>
+}
+class SettlerFactory {
+  - SettlerFactory(): 
+  + create(SettlementMode): Settler
+}
+class SettlerFactoryTest {
+  ~ SettlerFactoryTest(): 
+  ~ shouldCreateBasicSettler(): void
+  ~ shouldCreateSimplifiedSettler(): void
+}
+class SimplifiedSettler {
+  + SimplifiedSettler(): 
+  + settle(List<Transaction>): List<Debt>
+  - buildNetBalancesInCents(List<Transaction>): Map<String, Integer>
+  - splitEquallyInCents(int, List<Participant>): Map<String, Integer>
+  - createDebt(String, String, int): Debt
+  - maxZeroSumGroups(int, int[], int[], int[]): int
+  - settleZeroSumGroup(int, List<String>, List<Integer>): List<Debt>
+  - validate(Transaction): void
+  - toCents(Float): int
+  - participantKey(Participant): String
+  - fromCents(int): float
+  - ensurePresent(Map<String, Integer>, String): void
+}
+class SimplifiedSettlerFunctionalTest {
+  ~ SimplifiedSettlerFunctionalTest(): 
+  ~ settleShouldRejectNullPayer(): void
+  ~ settleShouldIgnoreSponsoredTransactions(): void
+  ~ settleShouldCollapseNeutralMiddleParticipantIntoSingleDebt(): void
+  ~ settleShouldReturnEmptyListForNullTransactions(): void
+  ~ settleShouldReturnEmptyListForEmptyTransactions(): void
+  ~ settleShouldRejectNullBeneficiaries(): void
+  ~ settleShouldRejectZeroAmount(): void
+  ~ settleShouldRejectEmptyBeneficiaries(): void
+  ~ twoCreditorScenarioShouldAlwaysSettleBalancesWithinNonZeroBoundFrom2To20(): Stream<DynamicTest>
+  ~ settleShouldRejectNullShareType(): void
+  ~ settleShouldReturnNoDebtWhenPayerIsOnlyBeneficiary(): void
+  ~ settleShouldRejectNullTransaction(): void
+  ~ settleShouldReduceThreeParticipantChainIntoMinimalFinalDebts(): void
+  ~ singleExpenseShouldProduceExpectedMinimalSettlementForEveryParticipantCountFrom2To20(): Stream<DynamicTest>
+  ~ settleShouldRejectNegativeAmount(): void
+  ~ settleShouldHandlePromptStyleFranceTripExampleWithCentRemainders(): void
+}
+entity Transaction << record >> {
+  + Transaction(Float, Participant, CATEGORY, SHARETYPE, Date, List<Participant>): 
+  + Transaction(String, Float, Participant, CATEGORY, SHARETYPE, Date, List<Participant>): 
+  + spentAmount(): Float
+  + transactionId(): String
+  + spentBy(): Participant
+  + spentDate(): Date
+  + shareType(): SHARETYPE
+  + benefittedBy(): List<Participant>
+  + spentOn(): CATEGORY
+}
+class TransactionTest {
+  ~ TransactionTest(): 
+  ~ canonicalConstructorShouldPreserveExplicitTransactionId(): void
+  ~ convenienceConstructorShouldGenerateTransactionIdAndPopulateFields(): void
+}
+class Trip {
+  + Trip(String, List<Participant>): 
+  ~ settlements: List<Debt>
+  ~ tripId: String
+  ~ tripName: String
+  ~ participants: List<Participant>
+  ~ balanceSheet: BalanceSheet
+  + addParticipants(List<Participant>): Trip
+  + settle(Settler): List<Debt>
+  + getParticipant(String): Participant
+  + removeParticipants(List<String>): Trip
+  + addTransactions(List<Transaction>): Trip
+   tripId: String
+   balanceSheet: BalanceSheet
+   settlements: List<Debt>
+   tripName: String
+   participants: List<Participant>
+}
+class TripTest {
+  ~ TripTest(): 
+  ~ constructorShouldCreateTripForValidParticipants(): void
+  ~ getParticipantShouldThrowWhenIdDoesNotExist(): void
+  ~ constructorShouldRejectEmptyParticipants(): void
+  ~ getParticipantShouldReturnParticipantById(): void
+  ~ constructorShouldRejectNullParticipants(): void
+  ~ settleShouldDelegateToProvidedSettler(): void
+  ~ addTransactionsShouldForwardTransactionsIntoBalanceSheet(): void
+  ~ addParticipantsShouldMakeNewParticipantRetrievableById(): void
+  ~ removeParticipantsShouldRemoveParticipantFromLookupById(): void
+}
+
+BalanceNode                      +-[#820000,plain]-  SimplifiedSettler               
+BalanceSheet                    "1" *-[#595959,plain]-> "transactions\n*" Transaction                     
+BasicSettler                     -[#008200,dashed]-^  Settler                         
+BasicSettlerFunctionalTest      "1" *-[#595959,plain]-> "settler\n1" BasicSettler                    
+CapturingSettler                 +-[#820000,plain]-  BalanceSheetTest                
+CapturingSettler                "1" *-[#595959,plain]-> "response\n*" Debt                            
+CapturingSettler                "1" *-[#595959,plain]-> "response\n*" Debt                            
+CapturingSettler                 -[#008200,dashed]-^  Settler                         
+CapturingSettler                 -[#008200,dashed]-^  Settler                         
+CapturingSettler                "1" *-[#595959,plain]-> "receivedTransactions\n*" Transaction                     
+CapturingSettler                "1" *-[#595959,plain]-> "receivedTransactions\n*" Transaction                     
+CapturingSettler                 +-[#820000,plain]-  TripTest                        
+DebtKey                          +-[#820000,plain]-  BasicSettler                    
+SimplifiedSettler                -[#008200,dashed]-^  Settler                         
+SimplifiedSettlerFunctionalTest "1" *-[#595959,plain]-> "settler\n1" SimplifiedSettler               
+Trip                            "1" *-[#595959,plain]-> "balanceSheet\n1" BalanceSheet                    
+Trip                            "1" *-[#595959,plain]-> "settlements\n*" Debt                            
+Trip                            "1" *-[#595959,plain]-> "participants\n*" Participant                     
+@enduml
