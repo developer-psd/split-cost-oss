@@ -1,123 +1,18 @@
 {
   "info": {
-    "_postman_id": "f4ee46ea-4e32-4dd1-b629-f23f08eb0c42",
+    "_postman_id": "6f5e4499-adcf-4a25-9e39-20e5d274398d",
     "name": "Expense Splitter - Automated E2E",
-    "description": "Automated Postman collection for the Expense Splitter API.\n\nThis collection is designed to run end-to-end against the current application, capture dynamic IDs,\nbuild transaction payloads from the created participants, execute both basic and simplified settlement flows,\nand clean up created data. It also includes participant-management flow coverage and negative validation checks.\n\nNotes:\n- The collection intentionally avoids the currently broken transaction query endpoints in the active flow.\n- A disabled folder named 'Known Current API Gaps' documents those requests for future enablement.\n- Use the supplied Newman scripts for fully automated execution and report generation.\n",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "description": "Automated Postman collection for the Expense Splitter API.\n\nThis collection is designed to run end-to-end against the application, capture dynamic IDs, build transaction payloads from created participants, execute both basic and simplified settlement flows, and clean up created data.\n\nHow to read this collection:\n- Each folder represents a business flow.\n- Each request contains endpoint-level documentation in its Description field.\n- Dynamic IDs are captured in test scripts and reused by later requests.\n- All URLs intentionally use {{baseUrl}} and related Postman variables so the same collection can run on different machines.\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52604266",
+    "_collection_link": "https://go.postman.co/collection/52604266-6f5e4499-adcf-4a25-9e39-20e5d274398d?source=collection_link"
   },
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8080"
-    },
-    {
-      "key": "run_id",
-      "value": ""
-    },
-    {
-      "key": "trip_id",
-      "value": ""
-    },
-    {
-      "key": "participant_flow_trip_id",
-      "value": ""
-    },
-    {
-      "key": "negative_trip_id",
-      "value": ""
-    },
-    {
-      "key": "transaction_1_id",
-      "value": ""
-    },
-    {
-      "key": "basic_settlement_count",
-      "value": "0"
-    },
-    {
-      "key": "participant_Alice",
-      "value": ""
-    },
-    {
-      "key": "participant_Bob",
-      "value": ""
-    },
-    {
-      "key": "participant_Smith",
-      "value": ""
-    },
-    {
-      "key": "participant_Wonder",
-      "value": ""
-    },
-    {
-      "key": "participant_Mat",
-      "value": ""
-    },
-    {
-      "key": "participant_Philips",
-      "value": ""
-    },
-    {
-      "key": "participant_Aleena",
-      "value": ""
-    },
-    {
-      "key": "participant_Kimberly",
-      "value": ""
-    },
-    {
-      "key": "participant_Kiran",
-      "value": ""
-    },
-    {
-      "key": "transactionsBody",
-      "value": ""
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "if (!pm.collectionVariables.get('run_id')) {",
-          "  pm.collectionVariables.set('run_id', String(Date.now()));",
-          "}",
-          "var resolvedBaseUrl = pm.environment.get('baseUrl') || pm.collectionVariables.get('baseUrl') || pm.globals.get('baseUrl') || 'http://localhost:8080';",
-          "pm.collectionVariables.set('baseUrl', resolvedBaseUrl);",
-          "pm.environment.set('baseUrl', resolvedBaseUrl);"
-        ]
-      }
-    }
-  ],
   "item": [
     {
       "name": "01 - Participant Management Flow",
-      "description": "Covers create trip, add participant, remove participant, detail retrieval, and cleanup.",
       "item": [
         {
           "name": "Create participant-flow trip",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/trip",
-            "body": {
-              "mode": "raw",
-              "raw": "{{participantFlowCreateBody}}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
           "event": [
             {
               "listen": "prerequest",
@@ -147,10 +42,7 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Add one participant",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -159,18 +51,30 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/trip/{{participant_flow_trip_id}}/participants",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"participants\": [\"Kiran\"]\n}",
+              "raw": "{{participantFlowCreateBody}}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
-            }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip"
+              ]
+            },
+            "description": "### Purpose\nCreate a new trip used by the participant-management flow.\n\n### Endpoint\n`POST {{baseUrl}}/trip`\n\n### Request body\n- `name` \u2014 human-readable trip name.\n- `participants` \u2014 array of participant names to create inside the trip.\n\n### Successful response\nReturns the created trip object.\n- `tripId` \u2014 server-generated unique identifier for the trip.\n- `tripName` \u2014 persisted trip name.\n- `participants` \u2014 array of participant objects:\n  - `name` \u2014 participant display name.\n  - `participantId` \u2014 server-generated participant identifier used by downstream APIs.\n\n### Notes\nThis request captures `tripId` for later participant add/remove/detail/delete operations.\n"
           },
-          "response": [],
+          "response": []
+        },
+        {
+          "name": "Add one participant",
           "event": [
             {
               "listen": "test",
@@ -201,16 +105,41 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participants\": [\"Kiran\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{participant_flow_trip_id}}/participants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{participant_flow_trip_id}}",
+                "participants"
+              ]
+            },
+            "description": "### Purpose\nAdd new participant(s) to an existing trip.\n\n### Endpoint\n`POST {{baseUrl}}/trip/{{participant_flow_trip_id}}/participants`\n\n### Path variables\n- `participant_flow_trip_id` \u2014 trip identifier captured from the create-trip response.\n\n### Request body\n- `participants` \u2014 array of participant names to add.\n\n### Successful response\nReturns the updated trip object.\n- `tripId` \u2014 unchanged trip identifier.\n- `tripName` \u2014 trip name.\n- `participants` \u2014 full current participant list after insertion.\n\n### Notes\nThis request captures the generated participant ID for `Kiran` so that the removal request can delete the exact participant by ID.\n"
+          },
+          "response": []
         },
         {
           "name": "Get participant-flow trip details",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{participant_flow_trip_id}}/details"
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -236,30 +165,27 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{participant_flow_trip_id}}/details",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{participant_flow_trip_id}}",
+                "details"
+              ]
+            },
+            "description": "### Purpose\nFetch the current state of a trip.\n\n### Endpoint\n`GET {{baseUrl}}/trip/{{participant_flow_trip_id}}/details`\n\n### Path variables\n- `participant_flow_trip_id` \u2014 target trip identifier.\n\n### Successful response\nReturns the trip object.\n- `tripId`\n- `tripName`\n- `participants[]`\n  - `name`\n  - `participantId`\n\n### Notes\nUsed here as a verification step after participant insertion.\n"
+          },
+          "response": []
         },
         {
           "name": "Remove added participant",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/trip/{{participant_flow_trip_id}}/participants",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"participants\": [\"{{participant_Kiran}}\"]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -294,16 +220,41 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participants\": [\"{{participant_Kiran}}\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{participant_flow_trip_id}}/participants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{participant_flow_trip_id}}",
+                "participants"
+              ]
+            },
+            "description": "### Purpose\nRemove participant(s) from a trip.\n\n### Endpoint\n`DELETE {{baseUrl}}/trip/{{participant_flow_trip_id}}/participants`\n\n### Path variables\n- `participant_flow_trip_id` \u2014 target trip identifier.\n\n### Request body\n- `participants` \u2014 array of participant IDs to remove.\n\n### Successful response\nReturns the updated trip object after deletion.\n- `tripId`\n- `tripName`\n- `participants[]`\n\n### Notes\nThe API expects participant IDs, not participant names, for removal.\n"
+          },
+          "response": []
         },
         {
           "name": "Delete participant-flow trip",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{participant_flow_trip_id}}"
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -330,36 +281,32 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{participant_flow_trip_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{participant_flow_trip_id}}"
+              ]
+            },
+            "description": "### Purpose\nDelete the participant-management trip after verification.\n\n### Endpoint\n`DELETE {{baseUrl}}/trip/{{participant_flow_trip_id}}`\n\n### Path variables\n- `participant_flow_trip_id` \u2014 trip identifier to delete.\n\n### Successful response\nReturns a minimal acknowledgement payload.\n- `tripId` \u2014 deleted trip identifier.\n\n### Notes\nThis is cleanup so the test run leaves no residual data for this flow.\n"
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Flow that verifies trip creation, participant addition, participant removal, detail retrieval, and cleanup for a small trip."
     },
     {
       "name": "02 - Settlement E2E Flow",
-      "description": "Creates a trip, posts transactions dynamically using returned participant IDs, runs basic and simplified settlement, deletes one transaction, recomputes settlement, and cleans up.",
       "item": [
         {
           "name": "Create settlement-flow trip",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/trip",
-            "body": {
-              "mode": "raw",
-              "raw": "{{settlementFlowCreateBody}}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
           "event": [
             {
               "listen": "prerequest",
@@ -396,16 +343,39 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{settlementFlowCreateBody}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip"
+              ]
+            },
+            "description": "### Purpose\nCreate the main trip used for settlement, transaction, and cleanup flow verification.\n\n### Endpoint\n`POST {{baseUrl}}/trip`\n\n### Request body\n- `name` \u2014 trip name.\n- `participants` \u2014 array of participant names.\n\n### Successful response\nReturns the created trip object.\n- `tripId`\n- `tripName`\n- `participants[]`\n  - `name`\n  - `participantId`\n\n### Notes\nThis request captures all participant IDs because downstream transaction posting must reference participant IDs, not names.\n"
+          },
+          "response": []
         },
         {
           "name": "Get settlement-flow trip details",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/details"
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -433,30 +403,27 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/details",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "details"
+              ]
+            },
+            "description": "### Purpose\nVerify that the settlement-flow trip exists and contains the expected participants.\n\n### Endpoint\n`GET {{baseUrl}}/trip/{{trip_id}}/details`\n\n### Path variables\n- `trip_id` \u2014 target trip identifier.\n\n### Successful response\nReturns the current trip object.\n- `tripId`\n- `tripName`\n- `participants[]`\n\n### Notes\nUsed as a guard step before transactions are posted.\n"
+          },
+          "response": []
         },
         {
           "name": "Post dynamic transactions",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/transactions",
-            "body": {
-              "mode": "raw",
-              "raw": "{{transactionsBody}}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
           "event": [
             {
               "listen": "prerequest",
@@ -541,16 +508,41 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{transactionsBody}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "transactions"
+              ]
+            },
+            "description": "### Purpose\nCreate multiple transactions in one call using IDs captured from the trip creation response.\n\n### Endpoint\n`POST {{baseUrl}}/trip/{{trip_id}}/transactions`\n\n### Path variables\n- `trip_id` \u2014 target trip identifier.\n\n### Request body\n- `transactions` \u2014 array of transaction objects. Each transaction contains:\n  - `spentAmount` \u2014 numeric amount spent.\n  - `spentBy` \u2014 participant ID of the payer.\n  - `spentOn` \u2014 expense category enum such as `FOOD`, `TRANSPORT`, or `STAY`.\n  - `spentDate` \u2014 date string expected by the backend.\n  - `benefittedBy` \u2014 array of participant IDs who share this transaction.\n\n### Successful response\nReturns the created transaction list.\nEach element contains:\n- `transactionId` \u2014 unique transaction identifier.\n- `benefittedBy[]` \u2014 participant objects resolved by the backend.\n- `amount` or `spentAmount` depending on controller mapping.\n- `shareType` \u2014 split type, typically `EQUAL`.\n- `spentBy` \u2014 participant object representing payer.\n- `spentDate`\n- `spentOn`\n\n### Notes\nThe test scripts capture all four transaction IDs for later deletion and recomputation checks.\n"
+          },
+          "response": []
         },
         {
           "name": "Compute basic settlement",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/settlement?simplify=false"
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -596,16 +588,33 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Compute simplified settlement",
+          ],
           "request": {
             "method": "POST",
             "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/settlement?simplify=true"
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/settlement?simplify=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "settlement"
+              ],
+              "query": [
+                {
+                  "key": "simplify",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "### Purpose\nCompute the non-simplified settlement for the trip.\n\n### Endpoint\n`POST {{baseUrl}}/trip/{{trip_id}}/settlement?simplify=false`\n\n### Query parameters\n- `simplify=false` \u2014 asks the backend for the basic settlement mode.\n\n### Successful response\nReturns a settlement array (or an object containing such an array depending on controller shape).\nEach settlement row contains:\n- `from` \u2014 debtor participant ID.\n- `to` \u2014 creditor participant ID.\n- `amount` \u2014 amount to transfer.\n\n### Notes\nThis step stores the number of rows so the simplified settlement can be checked against it.\n"
           },
-          "response": [],
+          "response": []
+        },
+        {
+          "name": "Compute simplified settlement",
           "event": [
             {
               "listen": "test",
@@ -645,16 +654,33 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/settlement?simplify=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "settlement"
+              ],
+              "query": [
+                {
+                  "key": "simplify",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "### Purpose\nCompute the simplified settlement for the trip.\n\n### Endpoint\n`POST {{baseUrl}}/trip/{{trip_id}}/settlement?simplify=true`\n\n### Query parameters\n- `simplify=true` \u2014 asks the backend for simplified settlement mode.\n\n### Successful response\nReturns settlement rows with the same semantic shape as the basic settlement:\n- `from`\n- `to`\n- `amount`\n\n### Notes\nThe collection asserts that the simplified settlement is not longer than the basic settlement.\n"
+          },
+          "response": []
         },
         {
           "name": "Delete first transaction",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_1_id}}"
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -686,16 +712,28 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_1_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "transactions",
+                "{{transaction_1_id}}"
+              ]
+            },
+            "description": "### Purpose\nDelete the first created transaction to verify recomputation and cleanup.\n\n### Endpoint\n`DELETE {{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_1_id}}`\n\n### Path variables\n- `trip_id` \u2014 trip identifier.\n- `transaction_1_id` \u2014 captured transaction identifier.\n\n### Successful response\nReturns acknowledgement payload:\n- `transactionId` \u2014 deleted transaction identifier.\n"
+          },
+          "response": []
         },
         {
           "name": "Recompute basic settlement after deletion",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/settlement?simplify=false"
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -732,16 +770,33 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/settlement?simplify=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "settlement"
+              ],
+              "query": [
+                {
+                  "key": "simplify",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "### Purpose\nVerify that settlement can be recomputed after a transaction is removed.\n\n### Endpoint\n`POST {{baseUrl}}/trip/{{trip_id}}/settlement?simplify=false`\n\n### Successful response\nReturns settlement rows again.\n- `from`\n- `to`\n- `amount`\n\n### Notes\nThis confirms that settlement is recomputed from persisted transaction state rather than relying on stale in-memory results.\n"
+          },
+          "response": []
         },
         {
           "name": "Delete second transaction",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_2_id}}"
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -773,16 +828,28 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Delete third transaction",
+          ],
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_3_id}}"
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_2_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "transactions",
+                "{{transaction_2_id}}"
+              ]
+            },
+            "description": "### Purpose\nDelete the second created transaction during cleanup.\n\n### Endpoint\n`DELETE {{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_2_id}}`\n\n### Successful response\n- `transactionId` \u2014 deleted transaction identifier.\n"
           },
-          "response": [],
+          "response": []
+        },
+        {
+          "name": "Delete third transaction",
           "event": [
             {
               "listen": "test",
@@ -814,16 +881,28 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Delete fourth transaction",
+          ],
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_4_id}}"
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_3_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "transactions",
+                "{{transaction_3_id}}"
+              ]
+            },
+            "description": "### Purpose\nDelete the third created transaction during cleanup.\n\n### Endpoint\n`DELETE {{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_3_id}}`\n\n### Successful response\n- `transactionId` \u2014 deleted transaction identifier.\n"
           },
-          "response": [],
+          "response": []
+        },
+        {
+          "name": "Delete fourth transaction",
           "event": [
             {
               "listen": "test",
@@ -855,16 +934,28 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Delete settlement-flow trip",
+          ],
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}"
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_4_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "transactions",
+                "{{transaction_4_id}}"
+              ]
+            },
+            "description": "### Purpose\nDelete the fourth created transaction during cleanup.\n\n### Endpoint\n`DELETE {{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_4_id}}`\n\n### Successful response\n- `transactionId` \u2014 deleted transaction identifier.\n"
           },
-          "response": [],
+          "response": []
+        },
+        {
+          "name": "Delete settlement-flow trip",
           "event": [
             {
               "listen": "test",
@@ -891,36 +982,32 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}"
+              ]
+            },
+            "description": "### Purpose\nDelete the settlement-flow trip after all transactions have been cleaned up.\n\n### Endpoint\n`DELETE {{baseUrl}}/trip/{{trip_id}}`\n\n### Path variables\n- `trip_id` \u2014 trip identifier to delete.\n\n### Successful response\nReturns acknowledgement payload:\n- `tripId` \u2014 deleted trip identifier.\n\n### Notes\nThis request is executed only after all transactions have been deleted so the backend deletion constraints are respected.\n"
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Flow that creates a full trip, posts transactions, computes both settlement modes, verifies recomputation after deletion, and performs complete cleanup."
     },
     {
       "name": "03 - Negative Validation Flow",
-      "description": "Confirms validation and error contracts without breaking the main happy-path automation.",
       "item": [
         {
           "name": "Create trip with blank name should fail",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/trip",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"\",\n  \"participants\": [\"Alice\"]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -933,10 +1020,7 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Create negative-flow trip",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -945,18 +1029,30 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/trip",
             "body": {
               "mode": "raw",
-              "raw": "{{negativeFlowCreateBody}}",
+              "raw": "{\n  \"name\": \"\",\n  \"participants\": [\"Alice\"]\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
-            }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip"
+              ]
+            },
+            "description": "### Purpose\nVerify request-body validation for blank trip names.\n\n### Endpoint\n`POST {{baseUrl}}/trip`\n\n### Request body\n- `name` \u2014 intentionally blank.\n- `participants` \u2014 minimal valid participant list.\n\n### Expected error response\nReturns validation error payload.\nTypical fields:\n- `name` \u2014 error message for the invalid trip name field.\n"
           },
-          "response": [],
+          "response": []
+        },
+        {
+          "name": "Create negative-flow trip",
           "event": [
             {
               "listen": "prerequest",
@@ -985,10 +1081,7 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Post invalid transaction should fail",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -997,18 +1090,30 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/trip/{{negative_trip_id}}/transactions",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"transactions\": [\n    {\n      \"spentAmount\": 100,\n      \"spentBy\": \"NegA\",\n      \"spentOn\": \"FOOD\",\n      \"spentDate\": \"01/01/2020\",\n      \"benefittedBy\": []\n    }\n  ]\n}",
+              "raw": "{{negativeFlowCreateBody}}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
-            }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip"
+              ]
+            },
+            "description": "### Purpose\nCreate a minimal trip used for negative transaction validation.\n\n### Endpoint\n`POST {{baseUrl}}/trip`\n\n### Request body\n- `name`\n- `participants`\n\n### Successful response\nReturns the created trip and captures `negative_trip_id` for later invalid-transaction and cleanup requests.\n"
           },
-          "response": [],
+          "response": []
+        },
+        {
+          "name": "Post invalid transaction should fail",
           "event": [
             {
               "listen": "test",
@@ -1034,16 +1139,41 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactions\": [\n    {\n      \"spentAmount\": 100,\n      \"spentBy\": \"NegA\",\n      \"spentOn\": \"FOOD\",\n      \"spentDate\": \"01/01/2020\",\n      \"benefittedBy\": []\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{negative_trip_id}}/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{negative_trip_id}}",
+                "transactions"
+              ]
+            },
+            "description": "### Purpose\nVerify validation for invalid transaction payloads.\n\n### Endpoint\n`POST {{baseUrl}}/trip/{{negative_trip_id}}/transactions`\n\n### Request body\nContains one intentionally invalid transaction:\n- `benefittedBy` is empty.\n\n### Expected error response\nReturns validation payload.\nTypical field:\n- `transactions[0].benefittedBy` \u2014 validation message describing why the array is invalid.\n"
+          },
+          "response": []
         },
         {
           "name": "Delete negative-flow trip",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{negative_trip_id}}"
-          },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -1067,23 +1197,32 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{negative_trip_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{negative_trip_id}}"
+              ]
+            },
+            "description": "### Purpose\nCleanup request for the negative-flow trip.\n\n### Endpoint\n`DELETE {{baseUrl}}/trip/{{negative_trip_id}}`\n\n### Successful response\nReturns acknowledgement that the trip was removed.\n"
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Flow that verifies validation and error contracts without affecting the main happy-path flow."
     },
     {
-      "name": "99 - Known Current API Gaps (disabled)",
-      "description": "These requests reflect current source-level endpoint gaps and are intentionally disabled so the automated run stays green. Enable them after fixing the controller.",
+      "name": "99 - Transaction Get APIs",
       "item": [
         {
-          "name": "Get all transactions in a trip (currently stubbed / returns null)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/transactions",
-            "description": "Current source contains a stubbed @GetMapping on /trip/{tripId}/transactions that returns null. Do not enable until fixed."
-          },
-          "response": [],
+          "name": "Get all transactions in a trip",
           "event": [
             {
               "listen": "test",
@@ -1095,31 +1234,163 @@
               }
             }
           ],
-          "disabled": true
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "transactions"
+              ]
+            },
+            "description": "### Purpose\nReserved for future use once the transaction list GET API is fully supported.\n\n### Intended endpoint\n`GET {{baseUrl}}/trip/{{trip_id}}/transactions`\n\n### Intended response\nArray of transaction objects:\n- `transactionId`\n- `benefittedBy`\n- `spentBy`\n- `spentOn`\n- `spentDate`\n- `shareType`\n- `amount`\n\n### Current status\nThis request is documented but not part of the active green automation lane.\n"
+          },
+          "response": []
         },
         {
-          "name": "Get single transaction by id (currently path/binding issue)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/trip/{{trip_id}}/transactions/transaction/{{transaction_1_id}}",
-            "description": "Current source maps /transaction/{transactionId} but does not bind transactionId correctly. Do not enable until fixed."
-          },
-          "response": [],
+          "name": "Get single transaction by id",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Placeholder', function () { pm.expect(true).to.be.true; });"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
-          "disabled": true
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_1_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "trip",
+                "{{trip_id}}",
+                "transactions",
+                "{{transaction_1_id}}"
+              ]
+            },
+            "description": "### Purpose\nReserved for future use once the single-transaction GET API is fully supported.\n\n### Intended endpoint\n`GET {{baseUrl}}/trip/{{trip_id}}/transactions/{{transaction_1_id}}`\n\n### Intended response\nSingle transaction object:\n- `transactionId`\n- `benefittedBy`\n- `spentBy`\n- `spentOn`\n- `spentDate`\n- `shareType`\n- `amount`\n\n### Current status\nThis request is documented but not part of the active green automation lane.\n"
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Documented but non-critical requests intended for future activation once the corresponding controller behavior is fully stable."
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('run_id')) {",
+          "  pm.collectionVariables.set('run_id', String(Date.now()));",
+          "}",
+          "var resolvedBaseUrl = pm.environment.get('baseUrl') || pm.collectionVariables.get('baseUrl') || pm.globals.get('baseUrl') || 'http://localhost:8080';",
+          "pm.collectionVariables.set('baseUrl', resolvedBaseUrl);",
+          "pm.environment.set('baseUrl', resolvedBaseUrl);"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "description": "Base URL of the running Expense Splitter API, for example http://localhost:8080"
+    },
+    {
+      "key": "run_id",
+      "value": "",
+      "description": "Per-run unique suffix used to keep created entity names distinct."
+    },
+    {
+      "key": "trip_id",
+      "value": "",
+      "description": "Trip ID captured for the main settlement flow."
+    },
+    {
+      "key": "participant_flow_trip_id",
+      "value": "",
+      "description": "Trip ID captured for the participant-management flow."
+    },
+    {
+      "key": "negative_trip_id",
+      "value": "",
+      "description": "Trip ID captured for the negative-validation flow."
+    },
+    {
+      "key": "transaction_1_id",
+      "value": "",
+      "description": "Captured transaction ID for the first created transaction."
+    },
+    {
+      "key": "basic_settlement_count",
+      "value": "0",
+      "description": "Number of rows returned by the basic settlement response."
+    },
+    {
+      "key": "participant_Alice",
+      "value": "",
+      "description": "Captured participant ID for Alice in the settlement flow."
+    },
+    {
+      "key": "participant_Bob",
+      "value": "",
+      "description": "Captured participant ID for Bob in the settlement flow."
+    },
+    {
+      "key": "participant_Smith",
+      "value": "",
+      "description": "Captured participant ID for Smith in the settlement flow."
+    },
+    {
+      "key": "participant_Wonder",
+      "value": "",
+      "description": "Captured participant ID for Wonder in the settlement flow."
+    },
+    {
+      "key": "participant_Mat",
+      "value": "",
+      "description": "Captured participant ID for Mat in the settlement flow."
+    },
+    {
+      "key": "participant_Philips",
+      "value": "",
+      "description": "Captured participant ID for Philips in the settlement flow."
+    },
+    {
+      "key": "participant_Aleena",
+      "value": "",
+      "description": "Captured participant ID for Aleena in the settlement flow."
+    },
+    {
+      "key": "participant_Kimberly",
+      "value": "",
+      "description": "Captured participant ID for Kimberly in the settlement flow."
+    },
+    {
+      "key": "participant_Kiran",
+      "value": "",
+      "description": "Captured participant ID for Kiran in the participant-management flow."
+    },
+    {
+      "key": "transactionsBody",
+      "value": "",
+      "description": "Runtime-generated JSON body used by the multi-transaction POST request."
     }
   ]
 }
