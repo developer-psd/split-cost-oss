@@ -1,8 +1,9 @@
 package com.getcollate.expenseSplitter.config;
 
 import com.zaxxer.hikari.HikariDataSource;
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
@@ -17,7 +18,7 @@ public class DataSourceVerifier {
         this.dataSource = dataSource;
     }
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void verify() {
         System.out.println("DataSource class = " + dataSource.getClass().getName());
 

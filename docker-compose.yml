@@ -1,0 +1,69 @@
+services:
+  db:
+    image: postgres:18.3
+    container_name: expense_splitter_database
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: expense_splitter
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d expense_splitter"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  db-init:
+    image: postgres:18.3
+    container_name: expense_splitter_db_init
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    environment:
+      PGPASSWORD: mysecretpassword
+    command: >
+      sh -c "
+      psql -h db -U postgres -d expense_splitter -f /workspace/db/schema.sql
+      "
+
+  builder:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: expense_splitter_builder
+    working_dir: /workspace
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./:/workspace
+      - m2_cache:/root/.m2
+    command: >
+      sh -c "
+      mvn -f expense-splitter.standalone/pom.xml clean install &&
+      mvn -f expense-splitter/pom.xml clean package
+      "
+
+  app:
+    image: expense-splitter-image
+    container_name: expense_splitter_container
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/expense_splitter
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: mysecretpassword
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: expense_splitter
+      SPRING_JPA_OPEN_IN_VIEW: "false"
+
+volumes:
+  pgdata:
+  m2_cache:
