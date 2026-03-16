@@ -59,7 +59,6 @@ public class TripController {
 
     @GetMapping("/all")
     public @ResponseBody ResponseEntity<List<Map<String, Object>>> getAllTrips() {
-        logger.info("Aum Sri Sai Ram");
         List<Trip> trips = service.getAllTrips();
         return ResponseEntity.ok().body(
                 trips.stream().map((Trip response) -> Map.of("tripId", response.getTripId(), "tripName", response.getTripName(), "participants", response.getParticipants())).toList()
@@ -68,7 +67,6 @@ public class TripController {
 
     @DeleteMapping("/{tripId}")
     public @ResponseBody ResponseEntity<Map<String, Object>> deleteTrip(@PathVariable String tripId) {
-        logger.info("Aum Sri Sai Ram");
         service.deleteTrip(tripId);
         return ResponseEntity.ok().body(Map.of("tripId", tripId));
     }
